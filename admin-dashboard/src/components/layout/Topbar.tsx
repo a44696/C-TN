@@ -1,6 +1,7 @@
 import React from "react";
-import { Search, Bell } from "lucide-react";
+import { Search, Bell, LogOut } from "lucide-react";
 import { cn } from "../../utils/cn";
+import { apiClient } from "../../utils/apiClient";
 
 interface TopbarProps {
   title?: string;
@@ -42,7 +43,7 @@ export const Topbar: React.FC<TopbarProps> = ({
             />
             <input
               type="text"
-              placeholder="Search..."
+              placeholder="Tìm kiếm..."
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
               className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-red-500 focus:border-transparent bg-white text-sm"
@@ -64,9 +65,13 @@ export const Topbar: React.FC<TopbarProps> = ({
           </button>
         )}
 
-        {/* <button className="w-9 h-9 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center text-white font-semibold text-xs hover:shadow-md transition-shadow">
-          U
-        </button> */}
+        <button
+          onClick={() => apiClient.logout()}
+          className="p-1.5 text-gray-600 hover:text-red-600 transition-colors"
+          title="Đăng xuất"
+        >
+          <LogOut size={18} />
+        </button>
       </div>
     </header>
   );

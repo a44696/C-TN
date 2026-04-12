@@ -1,6 +1,18 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { BarChart3, Users, Newspaper, Database, Settings } from "lucide-react";
+import {
+  BarChart3,
+  Users,
+  Newspaper,
+  Database,
+  Settings,
+  FileText,
+  ClipboardList,
+  Bell,
+  AlertTriangle,
+  BookOpen,
+  Calendar,
+} from "lucide-react";
 import { cn } from "../../utils/cn";
 
 interface SidebarProps {
@@ -9,27 +21,62 @@ interface SidebarProps {
 
 const navItems = [
   {
-    id: "master-data",
-    label: "Master Data",
-    href: "/master-data",
-    icon: Database,
-  },
-  { id: "news", label: "News", href: "/news", icon: Newspaper },
-  {
-    id: "attendance",
-    label: "Attendance",
-    href: "/attendance",
-    icon: Users,
-  },
-  {
-    id: "analytics",
-    label: "Analytics",
+    id: "dashboard",
+    label: "Bảng Điều Khiển",
     href: "/",
     icon: BarChart3,
   },
   {
+    id: "master-data",
+    label: "Dữ Liệu Chính",
+    href: "/master-data-enhanced",
+    icon: Database,
+  },
+  {
+    id: "document-types",
+    label: "Loại Tài Liệu",
+    href: "/document-types",
+    icon: FileText,
+  },
+  {
+    id: "service-requests",
+    label: "Yêu Cầu Dịch Vụ",
+    href: "/service-requests",
+    icon: ClipboardList,
+  },
+  {
+    id: "notifications",
+    label: "Thông Báo",
+    href: "/notifications",
+    icon: Bell,
+  },
+  {
+    id: "grades",
+    label: "Điểm Số",
+    href: "/grades",
+    icon: BookOpen,
+  },
+  {
+    id: "attendance",
+    label: "Điểm Danh",
+    href: "/attendance-sessions",
+    icon: Users,
+  },
+  {
+    id: "attendance-warnings",
+    label: "Cảnh Báo Vắng Mặt",
+    href: "/attendance-warnings",
+    icon: AlertTriangle,
+  },
+  {
+    id: "news",
+    label: "Tin Tức",
+    href: "/news",
+    icon: Newspaper,
+  },
+  {
     id: "settings",
-    label: "Settings",
+    label: "Cài Đặt",
     href: "/settings",
     icon: Settings,
     isBottom: true,
@@ -58,8 +105,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = true }) => {
             A
           </div>
           <div className="flex flex-col">
-            <span className="font-bold text-sm leading-tight">Admin</span>
-            <span className="text-xs text-slate-400">System</span>
+            <span className="font-bold text-sm leading-tight">Quản Lý</span>
+            <span className="text-xs text-slate-400">Hệ Thống</span>
           </div>
         </div>
       </div>
@@ -123,8 +170,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = true }) => {
               AD
             </div>
             <div className="flex flex-col flex-1 min-w-0">
-              <span className="text-xs font-semibold text-white">Admin</span>
-              <span className="text-xs text-slate-400">System Admin</span>
+              <span className="text-xs font-semibold text-white">Quản Lý</span>
+              <span className="text-xs text-slate-400">Quản Trị Hệ Thống</span>
             </div>
           </div>
         </div>
