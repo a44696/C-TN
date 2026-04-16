@@ -83,7 +83,38 @@ const GradesPage: React.FC = () => {
 
   const columns = [
     { key: "id" as const, label: "ID" },
-    { key: "enrollment_id" as const, label: "Mã đăng ký" },
+    {
+      key: "student" as const,
+      label: "Sinh viên",
+      render: (value: unknown) => {
+        const student = value as Grade["student"];
+        return student ? `${student.student_code} - ${student.full_name}` : "-";
+      },
+    },
+    {
+      key: "course_class" as const,
+      label: "Môn học",
+      render: (value: unknown) => {
+        const courseClass = value as Grade["course_class"];
+        return courseClass ? courseClass.subject?.subject_name : "-";
+      },
+    },
+    {
+      key: "course_class" as const,
+      label: "Phòng học",
+      render: (value: unknown) => {
+        const courseClass = value as Grade["course_class"];
+        return courseClass ? courseClass.room : "-";
+      },
+    },
+    {
+      key: "course_class" as const,
+      label: "Thời gian",
+      render: (value: unknown) => {
+        const courseClass = value as Grade["course_class"];
+        return courseClass ? courseClass.lesson_slot : "-";
+      },
+    },
     {
       key: "score_attendance" as const,
       label: "Điểm danh sách",

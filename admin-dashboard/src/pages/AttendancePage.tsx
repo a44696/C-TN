@@ -50,10 +50,10 @@ const AttendancePage: React.FC = () => {
     }
   };
 
-  const handleDeleteSession = async (id: number) => {
+  const handleDeleteSession = async (id: string | number) => {
     if (window.confirm("Bạn chắc chắn muốn xóa buổi điểm danh này?")) {
       try {
-        await apiClient.deleteAttendanceRecord(id);
+        await apiClient.deleteAttendanceRecord(id as number);
         await fetchSessions();
       } catch (err) {
         setError(err instanceof Error ? err.message : "Lỗi khi xóa");
@@ -87,14 +87,68 @@ const AttendancePage: React.FC = () => {
 
   const columns = [
     { key: "id" as const, label: "ID" },
-    { key: "course_class_id" as const, label: "Lớp học phần" },
+    {
+      key: "course_class" as const,
+      label: "Môn học",
+      render: (value: unknown) => {
+        const courseClass = value as AttendanceSession["course_class"];
+        return courseClass ? courseClass.subject?.subject_name : "-";
+      },
+    },
+    {
+      key: "course_class" as const,
+      label: "Giảng viên",
+      render: (value: unknown) => {
+        const courseClass = value as AttendanceSession["course_class"];
+        return courseClass ? courseClass.lecturer?.full_name : "-";
+      },
+    },
+    {
+      key: "course_class" as const,
+      label: "Phòng học",
+      render: (value: unknown) => {
+        const courseClass = value as AttendanceSession["course_class"];
+        return courseClass ? courseClass.room : "-";
+      },
+    },
+    {
+      key: "course_class" as const,
+      label: "Thời gian học",
+      render: (value: unknown) => {
+        const courseClass = value as AttendanceSession["course_class"];
+        return courseClass ? courseClass.lesson_slot : "-";
+      },
+    },
     {
       key: "date" as const,
-      label: "Ngày",
+      label: "Ngày kiểm điểm",
       render: (value: unknown) =>
         new Date(value as string).toLocaleDateString("vi-VN"),
     },
-    { key: "check_in_time" as const, label: "Thời gian kiểm điểm" },
+    {
+      key: "check_in_time" as const,
+      label: "Thời gian kiểm điểm",
+      render: (value: unknown) => {
+        const time = value as string;
+        if (!time) return "-";
+        try {
+          return new Date(time).toLocaleTimeString("vi-VN", {
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+        } catch {
+          return time;
+        }
+      },
+    },
+    {
+      key: "_count" as const,
+      label: "Đã điểm danh",
+      render: (value: unknown) => {
+        const count = value as AttendanceSession["_count"];
+        return count?.records ?? 0;
+      },
+    },
   ];
 
   return (

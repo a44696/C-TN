@@ -164,13 +164,73 @@ export interface CreateLecturerDto {
 
 // ==================== GRADES ====================
 
+export interface Student {
+  id: string;
+  user_id: string;
+  student_code: string;
+  full_name: string;
+  dob: string;
+  gender: string;
+  phone_number: string;
+  class_name: string;
+  address: string;
+  gpa: string;
+  email: string;
+  major_name: string;
+  department_name: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Subject {
+  id: string;
+  subject_code: string;
+  subject_name: string;
+  credits: number;
+  description: string;
+}
+
+export interface Lecturer {
+  lecturer_code: string;
+  full_name: string;
+}
+
+export interface CourseClass {
+  id: string;
+  subject_id: string;
+  lecturer_id: string;
+  semester_id: string;
+  academic_year: string;
+  room: string;
+  max_students: number;
+  current_students: number;
+  day_of_week: number;
+  lesson_slot: string;
+  start_date: string;
+  end_date: string;
+  created_at: string;
+  updated_at: string;
+  subject: Subject;
+  lecturer?: Lecturer;
+}
+
 export interface Grade {
-  id: number;
+  id: string;
   enrollment_id: string;
   score_attendance: number;
   score_process: number;
   score_final: number;
   score_total_10?: number;
+  updated_at?: string;
+  student?: Student;
+  course_class?: CourseClass;
+  enrollment?: {
+    id: string;
+    student_id: string;
+    course_class_id: string;
+    student: Student;
+    course_class: CourseClass;
+  };
 }
 
 export interface CreateGradeDto {
@@ -183,10 +243,14 @@ export interface CreateGradeDto {
 // ==================== ATTENDANCE ====================
 
 export interface AttendanceSession {
-  id: number;
-  course_class_id: number;
+  id: string;
+  course_class_id: string;
   check_in_time: string;
   date: string;
+  course_class?: CourseClass;
+  _count?: {
+    records: number;
+  };
 }
 
 export interface CreateAttendanceSessionDto {
