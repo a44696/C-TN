@@ -1,48 +1,57 @@
-import type { NewsItem } from "../types";
+import type { Post } from "../types/api";
 
-export const publishedNews: NewsItem[] = [
+export const publishedPosts: Post[] = [
   {
-    id: "1",
-    title: "Spring Semester Begins",
-    category: "Academic",
-    date: "2024-03-15",
-    status: "published",
+    id: 1,
+    title: "Thông báo lịch học lại",
+    content: "Từ ngày 1/5/2026, các lớp sẽ bắt đầu học lại tại phòng máy.",
+    author_id: 1,
+    recipient_type: "ALL_STUDENTS",
+    status: "PUBLISHED",
+    published_at: "2026-04-25T10:00:00Z",
+    created_at: "2026-04-25T10:00:00Z",
+    updated_at: "2026-04-25T10:00:00Z",
+    author: {
+      id: 1,
+      username: "admin",
+    },
   },
   {
-    id: "2",
-    title: "New Library Hours",
-    category: "Facilities",
-    date: "2024-03-10",
-    status: "published",
+    id: 2,
+    title: "Cập nhật thư viện mới",
+    content: "Thư viện mới đã mở cửa phục vụ sinh viên hàng ngày.",
+    author_id: 2,
+    recipient_type: "ALL_STUDENTS",
+    status: "PUBLISHED",
+    published_at: "2026-04-20T14:30:00Z",
+    created_at: "2026-04-20T14:30:00Z",
+    updated_at: "2026-04-20T14:30:00Z",
+    author: {
+      id: 2,
+      username: "lecturer",
+    },
   },
   {
-    id: "3",
-    title: "Internship Program Launch",
-    category: "Career",
-    date: "2024-03-05",
-    status: "published",
-  },
-  {
-    id: "4",
-    title: "Sports Day 2024",
-    category: "Events",
-    date: "2024-02-28",
-    status: "published",
-  },
-  {
-    id: "5",
-    title: "Campus Renovation Update",
-    category: "Announcements",
-    date: "2024-02-20",
-    status: "published",
+    id: 3,
+    title: "Chương trình thực tập công nghiệp",
+    content: "Khóa thực tập công nghiệp năm 2026 đã bắt đầu đăng ký.",
+    author_id: 1,
+    recipient_type: "ALL_STUDENTS",
+    status: "PUBLISHED",
+    published_at: "2026-04-15T09:00:00Z",
+    created_at: "2026-04-15T09:00:00Z",
+    updated_at: "2026-04-15T09:00:00Z",
+    author: {
+      id: 1,
+      username: "admin",
+    },
   },
 ];
 
-export const newsEditorInitialState = {
+export const postFormInitialState = {
   title: "",
-  category: "announcements",
-  targetAudience: "all-students",
-  pushNotification: false,
   content: "",
-  coverImage: null,
+  recipient_type: "ALL_STUDENTS" as const,
+  course_class_id: undefined as number | undefined,
+  media_urls: undefined as string[] | undefined,
 };

@@ -31,6 +31,11 @@ import type {
   ServiceRequestQueryParams,
   AttendanceWarningQueryParams,
   PaginationParams,
+  Post,
+  CreatePostPayload,
+  UpdatePostPayload,
+  PostResponse,
+  PostListResponse,
 } from "../types/api";
 
 const API_BASE_URL = "http://localhost:3000";
@@ -139,9 +144,9 @@ export class ApiClient {
       statusCode: inner.statusCode,
       message: inner.message,
       data: inner.data,
-      page: inner.pagination.page,
-      limit: inner.pagination.limit,
-      total: inner.pagination.total,
+      page: inner.page,
+      limit: inner.limit,
+      total: inner.total,
     };
   }
 
@@ -184,7 +189,19 @@ export class ApiClient {
       "/admin/service-requests",
       { params },
     );
-    const inner = response.data.data;
+
+    // Handle nested response format: response.data.data.data
+    let inner = response.data.data;
+
+    // If inner is wrapped in another data object, unwrap it
+    if (
+      inner &&
+      typeof inner === "object" &&
+      "data" in inner &&
+      !Array.isArray(inner)
+    ) {
+      inner = inner.data;
+    }
 
     if (Array.isArray(inner)) {
       const page = params?.page || 1;
@@ -203,9 +220,9 @@ export class ApiClient {
       statusCode: inner.statusCode,
       message: inner.message,
       data: inner.data,
-      page: inner.pagination.page,
-      limit: inner.pagination.limit,
-      total: inner.pagination.total,
+      page: inner.page,
+      limit: inner.limit,
+      total: inner.total,
     };
   }
 
@@ -259,6 +276,37 @@ export class ApiClient {
     await this.axiosInstance.delete(`/notifications/${id}`);
   }
 
+  // Get posts from notifications (posts are stored as notifications in DB)
+  async getPostsFromNotifications(
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<PostListResponse> {
+    const response = await this.axiosInstance.get<ApiResponse<Notification[]>>(
+      "/notifications/history",
+    );
+    const allNotifications = response.data.data;
+    const notifications = Array.isArray(allNotifications)
+      ? allNotifications
+      : allNotifications?.data || [];
+
+    // Filter to get only posts (notification_type = "POST")
+    const posts = notifications.filter(
+      (n: any) => n.notification_type === "POST",
+    );
+
+    // Simple pagination
+    const start = (page - 1) * limit;
+    const end = start + limit;
+    const paginatedPosts = posts.slice(start, end);
+
+    return {
+      data: paginatedPosts as any,
+      total: posts.length,
+      page,
+      limit,
+    };
+  }
+
   // ==================== COURSE CLASSES ====================
 
   async getCourseClasses(
@@ -286,9 +334,9 @@ export class ApiClient {
       statusCode: inner.statusCode,
       message: inner.message,
       data: inner.data,
-      page: inner.pagination.page,
-      limit: inner.pagination.limit,
-      total: inner.pagination.total,
+      page: inner.page,
+      limit: inner.limit,
+      total: inner.total,
     };
   }
 
@@ -458,9 +506,9 @@ export class ApiClient {
       statusCode: inner.statusCode,
       message: inner.message,
       data: inner.data,
-      page: inner.pagination.page,
-      limit: inner.pagination.limit,
-      total: inner.pagination.total,
+      page: inner.page,
+      limit: inner.limit,
+      total: inner.total,
     };
   }
 
@@ -515,9 +563,9 @@ export class ApiClient {
       statusCode: inner.statusCode,
       message: inner.message,
       data: inner.data,
-      page: inner.pagination.page,
-      limit: inner.pagination.limit,
-      total: inner.pagination.total,
+      page: inner.page,
+      limit: inner.limit,
+      total: inner.total,
     };
   }
 
@@ -578,9 +626,9 @@ export class ApiClient {
       statusCode: inner.statusCode,
       message: inner.message,
       data: inner.data,
-      page: inner.pagination.page,
-      limit: inner.pagination.limit,
-      total: inner.pagination.total,
+      page: inner.page,
+      limit: inner.limit,
+      total: inner.total,
     };
   }
 
@@ -599,6 +647,134 @@ export class ApiClient {
       ApiResponse<AttendanceWarning>
     >(`/attendance-warnings/${id}/resolve`, data);
     return response.data.data.data;
+  }
+
+  // ==================== POSTS ====================
+
+  async createPost(payload: CreatePostPayload): Promise<PostResponse> {
+    const response = await this.axiosInstance.post<any>("/posts", payload);
+    // Handle nested response: response.data.data contains the ApiResponse
+    const apiResponse = response.data.data;
+    return {
+      message: apiResponse.message,
+      recipientCount: apiResponse.data?.recipientCount || 0,
+      data: apiResponse.data,
+    };
+  }
+
+  async getGlobalPosts(
+    page: number = 1,
+    limit: number = 20,
+  ): Promise<PostListResponse> {
+    const response = await this.axiosInstance.get<any>("/posts/global", {
+      params: { page, limit },
+    });
+    // Handle nested response: response.data.data.data has the actual data
+    const apiResponse = response.data.data;
+    const paginatedData = apiResponse.data || {};
+    return {
+      data: paginatedData.data || [],
+      total: paginatedData.total || 0,
+      page: paginatedData.page || page,
+      limit: paginatedData.limit || limit,
+    };
+  }
+
+  async getStudentFeed(
+    page: number = 1,
+    limit: number = 20,
+  ): Promise<PostListResponse> {
+    const response = await this.axiosInstance.get<any>("/posts/feed", {
+      params: { page, limit },
+    });
+    const apiResponse = response.data.data;
+    return {
+      data: apiResponse.data || [],
+      total: apiResponse.total || 0,
+      page: apiResponse.page || page,
+      limit: apiResponse.limit || limit,
+    };
+  }
+
+  async getClassPosts(
+    classId: number,
+    skip: number = 0,
+    take: number = 20,
+  ): Promise<PostListResponse> {
+    const response = await this.axiosInstance.get<any>(
+      `/posts/class/${classId}`,
+      {
+        params: { skip, take },
+      },
+    );
+    const apiResponse = response.data.data;
+    return {
+      data: apiResponse.data || [],
+      total: apiResponse.total || 0,
+      skip: apiResponse.skip || skip,
+      take: apiResponse.take || take,
+    };
+  }
+
+  async getMyPosts(
+    skip: number = 0,
+    take: number = 20,
+  ): Promise<PostListResponse> {
+    const response = await this.axiosInstance.get<any>("/posts/me/all", {
+      params: { skip, take },
+    });
+    const apiResponse = response.data.data;
+    return {
+      data: apiResponse.data || [],
+      total: apiResponse.total || 0,
+      skip: apiResponse.skip || skip,
+      take: apiResponse.take || take,
+    };
+  }
+
+  async getPostById(id: number): Promise<Post> {
+    const response = await this.axiosInstance.get<any>(`/posts/${id}`);
+    return response.data.data.data || response.data.data;
+  }
+
+  async updatePost(postId: number, payload: UpdatePostPayload): Promise<Post> {
+    const response = await this.axiosInstance.patch<any>(
+      `/posts/${postId}`,
+      payload,
+    );
+    return response.data.data.data || response.data.data;
+  }
+
+  async deletePost(postId: number): Promise<void> {
+    await this.axiosInstance.delete(`/posts/${postId}`);
+  }
+
+  async uploadPostMedia(
+    postId: number,
+    file: File,
+    onUploadProgress?: (progressEvent: any) => void,
+  ): Promise<{
+    id: string;
+    file_url: string;
+    file_type: string;
+    original_filename: string;
+    file_size: number;
+    uploaded_at: string;
+  }> {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await this.axiosInstance.post<any>(
+      `/posts/${postId}/upload`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+        onUploadProgress,
+      },
+    );
+    return response.data.data;
   }
 
   // ==================== USERS ====================

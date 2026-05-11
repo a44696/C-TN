@@ -1,7 +1,8 @@
 import React from "react";
-import { Search, Bell, LogOut } from "lucide-react";
+import { Search, LogOut } from "lucide-react";
 import { cn } from "../../utils/cn";
 import { apiClient } from "../../utils/apiClient";
+import NotificationDropdown from "./NotificationDropdown";
 
 interface TopbarProps {
   title?: string;
@@ -58,12 +59,7 @@ export const Topbar: React.FC<TopbarProps> = ({
           <div className="flex items-center gap-3">{rightAction}</div>
         )}
 
-        {showNotification && (
-          <button className="relative p-1.5 text-gray-600 hover:text-gray-900 transition-colors group">
-            <Bell size={18} />
-            <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
-          </button>
-        )}
+        {showNotification && <NotificationDropdown />}
 
         <button
           onClick={() => apiClient.logout()}

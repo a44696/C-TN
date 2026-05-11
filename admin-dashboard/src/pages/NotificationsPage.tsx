@@ -21,7 +21,11 @@ const NotificationsPage: React.FC = () => {
     setError("");
     try {
       const data = await apiClient.getNotifications();
-      setNotifications(data);
+      // Filter out posts (notification_type = "POST") - only show actual notifications
+      const actualNotifications = data.filter(
+        (n) => n.notification_type !== "POST",
+      );
+      setNotifications(actualNotifications);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Lỗi khi tải dữ liệu");
     } finally {

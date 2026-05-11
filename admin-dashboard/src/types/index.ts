@@ -39,13 +39,8 @@ export interface StudentRisk {
   riskLevel: "low" | "medium" | "high";
 }
 
-export interface NewsItem {
-  id: string;
-  title: string;
-  category: string;
-  date: string;
-  status: "published" | "draft";
-}
+// NewsItem moved to api.ts
+export type { NewsItem } from "./api";
 
 export interface MasterDataRecord {
   id: string;

@@ -25,6 +25,73 @@ export interface CreateDocumentTypeDto {
   processing_days: number;
 }
 
+// ==================== POSTS MANAGEMENT ====================
+
+export type PostRecipientType =
+  | "SPECIFIC_CLASSES"
+  | "ALL_STUDENTS"
+  | "BY_DEPARTMENT";
+
+export interface PostAuthor {
+  id: number;
+  username: string;
+  avatar_url?: string;
+}
+
+export interface PostMedia {
+  id: number;
+  file_url: string;
+  file_type: string;
+}
+
+export type PostStatus = "DRAFT" | "PUBLISHED" | "ARCHIVED";
+
+export interface Post {
+  id: number;
+  title: string;
+  content: string;
+  author_id: number;
+  course_class_id?: number;
+  recipient_type: PostRecipientType;
+  status: PostStatus;
+  published_at: string;
+  created_at: string;
+  updated_at: string;
+  author: PostAuthor;
+  media?: PostMedia[];
+  recipientCount?: number;
+}
+
+export interface CreatePostPayload {
+  title: string;
+  content: string;
+  recipient_type: PostRecipientType;
+  course_class_id?: number;
+  department_names?: string[];
+  media_urls?: string[];
+}
+
+export interface UpdatePostPayload {
+  title?: string;
+  content?: string;
+  media_urls?: string[];
+}
+
+export interface PostResponse {
+  message: string;
+  recipientCount: number;
+  data: Post;
+}
+
+export interface PostListResponse {
+  data: Post[];
+  total: number;
+  page?: number;
+  limit?: number;
+  skip?: number;
+  take?: number;
+}
+
 // ==================== SERVICE REQUESTS ====================
 
 export interface ServiceRequest {

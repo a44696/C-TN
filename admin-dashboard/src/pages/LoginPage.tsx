@@ -91,21 +91,6 @@ const LoginPage: React.FC = () => {
               {isLoading ? "Đang đăng nhập..." : "Đăng nhập"}
             </Button>
           </form>
-
-          {/* Demo Credentials */}
-          <div className="mt-8 pt-8 border-t border-gray-200">
-            <p className="text-xs text-gray-500 text-center mb-3">
-              Thông tin đăng nhập demo:
-            </p>
-            <div className="space-y-2 text-xs text-gray-600">
-              <p>
-                <span className="font-semibold">Username:</span> admin
-              </p>
-              <p>
-                <span className="font-semibold">Password:</span> password123
-              </p>
-            </div>
-          </div>
         </div>
 
         {/* Footer */}

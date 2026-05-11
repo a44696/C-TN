@@ -101,13 +101,13 @@ const ServiceRequestsPage: React.FC = () => {
       key: "id" as const,
       label: "Mã sinh viên",
       render: (value: unknown, row: ServiceRequest) =>
-        row.student?.student_code || "-",
+        row.user?.student?.student_code || "-",
     },
     {
       key: "id" as const,
       label: "Tên sinh viên",
       render: (value: unknown, row: ServiceRequest) =>
-        row.student?.full_name || "-",
+        row.user?.student?.full_name || "-",
     },
     {
       key: "id" as const,
