@@ -1,15 +1,11 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import LoginPage from "../pages/LoginPage";
 import DashboardPage from "../pages/DashboardPage";
-import AttendanceConfigPage from "../pages/AttendanceConfigPage";
 import NewsEditorPage from "../pages/NewsEditorPage";
 import MasterDataPage from "../pages/MasterDataPage";
 import DocumentTypesPage from "../pages/DocumentTypesPage";
 import ServiceRequestsPage from "../pages/ServiceRequestsPage";
-import NotificationsPage from "../pages/NotificationsPage";
-import AttendanceWarningsPage from "../pages/AttendanceWarningsPage";
 import GradesPage from "../pages/GradesPage";
-import AttendancePage from "../pages/AttendancePage";
 import EnhancedMasterDataPage from "../pages/EnhancedMasterDataPage";
 import ProtectedRoute from "./ProtectedRoute";
 
@@ -21,14 +17,6 @@ export default function AppRoutes() {
         <Route
           path="/"
           element={<ProtectedRoute element={<DashboardPage />} />}
-        />
-        <Route
-          path="/attendance"
-          element={<ProtectedRoute element={<AttendanceConfigPage />} />}
-        />
-        <Route
-          path="/attendance-sessions"
-          element={<ProtectedRoute element={<AttendancePage />} />}
         />
         <Route
           path="/news"
@@ -49,14 +37,6 @@ export default function AppRoutes() {
         <Route
           path="/service-requests"
           element={<ProtectedRoute element={<ServiceRequestsPage />} />}
-        />
-        <Route
-          path="/notifications"
-          element={<ProtectedRoute element={<NotificationsPage />} />}
-        />
-        <Route
-          path="/attendance-warnings"
-          element={<ProtectedRoute element={<AttendanceWarningsPage />} />}
         />
         <Route
           path="/grades"

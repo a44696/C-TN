@@ -46,28 +46,10 @@ const navItems = [
     icon: ClipboardList,
   },
   {
-    id: "notifications",
-    label: "Thông Báo",
-    href: "/notifications",
-    icon: Bell,
-  },
-  {
     id: "grades",
     label: "Điểm Số",
     href: "/grades",
     icon: BookOpen,
-  },
-  {
-    id: "attendance",
-    label: "Điểm Danh",
-    href: "/attendance-sessions",
-    icon: Users,
-  },
-  {
-    id: "attendance-warnings",
-    label: "Cảnh Báo Vắng Mặt",
-    href: "/attendance-warnings",
-    icon: AlertTriangle,
   },
   {
     id: "news",

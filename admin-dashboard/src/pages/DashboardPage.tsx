@@ -81,7 +81,7 @@ export default function DashboardPage() {
   };
 
   return (
-    <AdminLayout topbarTitle="Analytics">
+    <AdminLayout topbarTitle="Phân Tích">
       {/* Stats Row */}
       <div className="grid grid-cols-4 gap-5 mb-6">
         {dashboardStats.map((stat, idx) => (
@@ -104,9 +104,11 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h2 className="text-base font-bold text-gray-900">
-                  Attendance Trends
+                  Xu Hướng Điểm Danh
                 </h2>
-                <p className="text-xs text-gray-500 mt-0.5">Weekly overview</p>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Tổng quan hàng tuần
+                </p>
               </div>
               <div className="flex gap-2">
                 <button
@@ -117,7 +119,7 @@ export default function DashboardPage() {
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
                 >
-                  Weekly
+                  Tuần
                 </button>
                 <button
                   onClick={() => setChartType("monthly")}
@@ -127,7 +129,7 @@ export default function DashboardPage() {
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
                 >
-                  Monthly
+                  Tháng
                 </button>
               </div>
             </div>
@@ -176,13 +178,13 @@ export default function DashboardPage() {
           <Card className="p-5 h-full flex flex-col">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-base font-bold text-gray-900">
-                Recent Activities
+                Hoạt Động Gần Đây
               </h2>
               <a
                 href="#"
                 className="text-xs text-red-600 hover:text-red-700 font-medium"
               >
-                View All
+                Xem Tất Cả
               </a>
             </div>
             <div className="flex-1 overflow-y-auto">
@@ -191,7 +193,7 @@ export default function DashboardPage() {
               ))}
             </div>
             <button className="mt-4 text-xs text-gray-600 hover:text-gray-900 font-medium w-full py-2 border-t border-gray-100 pt-4">
-              Clear Log
+              Xóa Nhật Ký
             </button>
           </Card>
         </div>
@@ -208,12 +210,12 @@ export default function DashboardPage() {
                   <FileText size={20} />
                 </div>
               </div>
-              <h3 className="text-base font-bold mb-2">Generate Report</h3>
+              <h3 className="text-base font-bold mb-2">Tạo Báo Cáo</h3>
               <p className="text-sm text-slate-300 mb-5 line-clamp-2">
-                Create comprehensive attendance and performance reports
+                Tạo báo cáo điểm danh và hiệu suất toàn diện
               </p>
               <Button variant="primary" size="md">
-                Generate Now
+                Tạo Ngay
               </Button>
             </div>
           </div>
@@ -227,7 +229,7 @@ export default function DashboardPage() {
             </div>
             <div className="flex-1">
               <h3 className="text-base font-bold text-gray-900 mb-3">
-                Faculty Health Score
+                Điểm Sức Khỏe Giảng Viên
               </h3>
               <div className="mb-3">
                 <div className="flex items-baseline gap-2 mb-2">
@@ -241,9 +243,7 @@ export default function DashboardPage() {
                   ></div>
                 </div>
               </div>
-              <p className="text-xs text-gray-600">
-                Excellent overall attendance
-              </p>
+              <p className="text-xs text-gray-600">Điểm danh chung xuất sắc</p>
             </div>
           </div>
         </Card>
