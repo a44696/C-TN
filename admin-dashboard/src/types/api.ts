@@ -155,10 +155,19 @@ export interface CourseClass {
   academic_year: string;
   room: string;
   max_students: number;
+  current_students?: number;
   day_of_week: number;
   lesson_slot: string;
   start_date: string;
   end_date: string;
+  latitude?: number;
+  longitude?: number;
+  allowed_radius?: number;
+  subject?: Subject;
+  lecturer?: Lecturer;
+  semester?: Semester;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface CreateCourseClassDto {
@@ -249,38 +258,6 @@ export interface Student {
   updated_at: string;
 }
 
-export interface Subject {
-  id: string;
-  subject_code: string;
-  subject_name: string;
-  credits: number;
-  description: string;
-}
-
-export interface Lecturer {
-  lecturer_code: string;
-  full_name: string;
-}
-
-export interface CourseClass {
-  id: string;
-  subject_id: string;
-  lecturer_id: string;
-  semester_id: string;
-  academic_year: string;
-  room: string;
-  max_students: number;
-  current_students: number;
-  day_of_week: number;
-  lesson_slot: string;
-  start_date: string;
-  end_date: string;
-  created_at: string;
-  updated_at: string;
-  subject: Subject;
-  lecturer?: Lecturer;
-}
-
 export interface Grade {
   id: string;
   enrollment_id: string;
@@ -305,6 +282,18 @@ export interface CreateGradeDto {
   score_attendance: number;
   score_process: number;
   score_final: number;
+}
+
+// ==================== CLASS ENROLLMENTS ====================
+
+export interface ClassEnrollment {
+  id: string;
+  student_id: string;
+  course_class_id: number;
+  student: Student;
+  course_class: CourseClass;
+  created_at?: string;
+  updated_at?: string;
 }
 
 // ==================== ATTENDANCE ====================
@@ -361,9 +350,19 @@ export interface ResolveAttendanceWarningDto {
 // ==================== USERS ====================
 
 export interface User {
-  id: number;
+  id?: number;
+  userId?: string;
   username: string;
   role: "ADMIN" | "STUDENT" | "LECTURER";
+  fullName?: string;
+  full_name?: string;
+  studentCode?: string;
+  student_code?: string;
+  studentId?: number;
+  email?: string;
+  className?: string;
+  avatarUrl?: string | null;
+  code?: string;
 }
 
 export interface CreateUserDto {
@@ -403,4 +402,53 @@ export interface AttendanceWarningQueryParams extends PaginationParams {
   severity?: "Low" | "Medium" | "High";
   student_code?: string;
   is_resolved?: boolean;
+}
+
+// ==================== ADMIN CHAT ====================
+
+export type MessageType = "TEXT" | "IMAGE" | "FILE";
+export type UserRole = "ADMIN" | "STUDENT" | "LECTURER";
+
+export interface ChatUser {
+  id: string;
+  username: string;
+  fullName: string;
+  code: string;
+  avatarUrl: string | null;
+  role: UserRole;
+}
+
+export interface ChatMessage {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  senderName: string;
+  senderAvatar: string | null;
+  senderRole: UserRole;
+  content: string;
+  messageType: MessageType;
+  mediaUrl: string | null;
+  isRead: boolean;
+  isMe: boolean;
+  createdAt: string;
+}
+
+export interface Conversation {
+  id: string;
+  partner: ChatUser;
+  lastMessage: ChatMessage | null;
+  unreadCount: number;
+  lastMessageAt: string | null;
+}
+
+export interface MessagesResponse {
+  messages: ChatMessage[];
+  hasMore: boolean;
+  nextCursor: string | null;
+}
+
+export interface SendMessageDto {
+  content: string;
+  messageType?: MessageType;
+  mediaUrl?: string | null;
 }

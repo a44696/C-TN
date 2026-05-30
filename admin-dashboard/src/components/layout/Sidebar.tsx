@@ -2,19 +2,17 @@ import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   BarChart3,
-  Users,
   Newspaper,
   Database,
   Settings,
   FileText,
   ClipboardList,
-  Bell,
-  AlertTriangle,
   BookOpen,
-  Calendar,
+  MessageCircle,
 } from "lucide-react";
 import { cn } from "../../utils/cn";
 import { useNotifications } from "../../hooks/useNotifications";
+import logo from "../../assets/logo.svg";
 
 interface SidebarProps {
   isOpen?: boolean;
@@ -58,6 +56,12 @@ const navItems = [
     icon: Newspaper,
   },
   {
+    id: "chat",
+    label: "Chat",
+    href: "/chat",
+    icon: MessageCircle,
+  },
+  {
     id: "settings",
     label: "Cài Đặt",
     href: "/settings",
@@ -78,21 +82,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = true }) => {
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 h-screen w-64 bg-gradient-to-b from-slate-900 to-slate-800 text-white transition-all duration-300 z-40",
+        "fixed left-0 top-0 h-screen w-64 bg-white text-slate-900 transition-all duration-300 z-40 border-r border-gray-200",
         !isOpen && "-translate-x-full",
       )}
     >
       {/* Logo Section */}
-      <div className="h-20 px-6 flex items-center justify-start border-b border-slate-700">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-red-600 rounded-lg flex items-center justify-center font-bold text-sm flex-shrink-0">
-            A
-          </div>
-          <div className="flex flex-col">
-            <span className="font-bold text-sm leading-tight">Quản Lý</span>
-            <span className="text-xs text-slate-400">Hệ Thống</span>
-          </div>
-        </div>
+      <div className="h-20 px-6 flex items-center justify-start border-b border-gray-300">
+        <img src={logo} alt="Thăng Long University" className="h-12 w-auto" />
       </div>
 
       {/* Navigation Items */}
@@ -113,7 +109,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = true }) => {
                     "flex items-center gap-3 px-4 py-2.5 rounded-md transition-colors duration-150 text-sm font-medium relative group",
                     active
                       ? "bg-red-600 text-white"
-                      : "text-slate-300 hover:text-white hover:bg-slate-700/50",
+                      : "text-slate-700 hover:text-slate-900 hover:bg-gray-100",
                   )}
                 >
                   <Icon size={18} />
@@ -130,7 +126,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = true }) => {
       </nav>
 
       {/* Bottom Section */}
-      <div className="border-t border-slate-700 px-3 py-4 space-y-3">
+      <div className="border-t border-gray-300 px-3 py-4 space-y-3">
         {/* Settings */}
         {navItems
           .filter((item) => item.isBottom)
@@ -145,7 +141,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = true }) => {
                   "flex items-center gap-3 px-4 py-2.5 rounded-md transition-colors duration-150 text-sm font-medium",
                   active
                     ? "bg-red-600 text-white"
-                    : "text-slate-300 hover:text-white hover:bg-slate-700/50",
+                    : "text-slate-700 hover:text-slate-900 hover:bg-gray-100",
                 )}
               >
                 <Icon size={18} />
@@ -155,17 +151,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = true }) => {
           })}
 
         {/* User Profile Card */}
-        <div className="bg-slate-700/40 rounded-lg p-3 mt-6">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center font-bold text-xs text-white flex-shrink-0">
-              AD
-            </div>
-            <div className="flex flex-col flex-1 min-w-0">
-              <span className="text-xs font-semibold text-white">Quản Lý</span>
-              <span className="text-xs text-slate-400">Quản Trị Hệ Thống</span>
-            </div>
-          </div>
-        </div>
       </div>
     </aside>
   );

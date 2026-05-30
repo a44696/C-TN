@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { Plus, Edit2, Trash2 } from "lucide-react";
+import { Plus, Edit2, Trash2, Search } from "lucide-react";
 import AdminLayout from "../layouts/AdminLayout";
 import Card from "../components/common/Card";
 import Button from "../components/common/Button";
+import Input from "../components/common/Input";
 import DataTable from "../components/common/DataTable";
 import FormModal, { type FormField } from "../components/common/FormModal";
 import { apiClient } from "../utils/apiClient";
@@ -17,6 +18,7 @@ const DocumentTypesPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editingData, setEditingData] = useState<DocumentType | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const limit = 10;
 
@@ -100,6 +102,10 @@ const DocumentTypesPage: React.FC = () => {
     },
   ];
 
+  const filteredDocumentTypes = documentTypes.filter((doc) =>
+    doc.document_name.toLowerCase().includes(searchTerm.toLowerCase()),
+  );
+
   const columns = [
     { key: "id" as const, label: "ID" },
     { key: "document_name" as const, label: "Tên loại tài liệu" },
@@ -111,10 +117,19 @@ const DocumentTypesPage: React.FC = () => {
   ];
 
   return (
-    <AdminLayout>
+    <AdminLayout topbarTitle="Tài Liệu Thủ Tục" showSearch={false}>
       <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-gray-900">Loại Tài Liệu</h1>
+        <div className="flex justify-between items-center gap-4">
+          <div className="w-80 flex items-center gap-2">
+            <Search size={20} className="text-gray-400" />
+            <Input
+              type="text"
+              placeholder="Tìm kiếm tài liệu..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="flex-1"
+            />
+          </div>
           <Button
             onClick={() => {
               setEditingId(null);
@@ -129,7 +144,7 @@ const DocumentTypesPage: React.FC = () => {
 
         <Card>
           <DataTable<DocumentType>
-            data={documentTypes}
+            data={filteredDocumentTypes}
             columns={columns}
             isLoading={isLoading}
             error={error}

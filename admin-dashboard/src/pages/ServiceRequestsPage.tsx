@@ -115,7 +115,6 @@ const ServiceRequestsPage: React.FC = () => {
       render: (value: unknown, row: ServiceRequest) =>
         row.documentType?.document_name || "-",
     },
-    { key: "reason" as const, label: "Lý do", className: "max-w-xs truncate" },
     {
       key: "status" as const,
       label: "Trạng thái",
@@ -135,10 +134,8 @@ const ServiceRequestsPage: React.FC = () => {
   ];
 
   return (
-    <AdminLayout>
+    <AdminLayout topbarTitle="Yêu Cầu Dịch Vụ" showSearch={false}>
       <div className="space-y-6">
-        <h1 className="text-3xl font-bold text-gray-900">Yêu Cầu Dịch Vụ</h1>
-
         <Card className="p-4">
           <div className="flex gap-2">
             <Button

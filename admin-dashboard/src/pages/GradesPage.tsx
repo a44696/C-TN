@@ -1,19 +1,23 @@
 import React, { useState, useEffect } from "react";
+import { Search } from "lucide-react";
 import AdminLayout from "../layouts/AdminLayout";
 import Card from "../components/common/Card";
 import Button from "../components/common/Button";
+import Input from "../components/common/Input";
 import DataTable from "../components/common/DataTable";
 import FormModal, { type FormField } from "../components/common/FormModal";
 import { apiClient } from "../utils/apiClient";
-import type { Grade } from "../types/api";
+import type { Grade, ClassEnrollment } from "../types/api";
 
 const GradesPage: React.FC = () => {
   const [grades, setGrades] = useState<Grade[]>([]);
+  const [enrollments, setEnrollments] = useState<ClassEnrollment[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const limit = 10;
 
@@ -31,8 +35,21 @@ const GradesPage: React.FC = () => {
     }
   };
 
+  const fetchEnrollments = async () => {
+    try {
+      const response = await apiClient.getClassEnrollments({
+        page: 1,
+        limit: 1000,
+      });
+      setEnrollments(response.data);
+    } catch (err) {
+      console.error("Lỗi khi tải đăng ký học phần:", err);
+    }
+  };
+
   useEffect(() => {
     fetchGrades();
+    fetchEnrollments();
   }, [page]);
 
   const handleCreateGrade = async (data: Record<string, unknown>) => {
@@ -53,10 +70,13 @@ const GradesPage: React.FC = () => {
   const formFields: FormField[] = [
     {
       name: "enrollment_id",
-      label: "Mã đăng ký học phần",
-      type: "text",
+      label: "Chọn sinh viên và lớp học",
+      type: "select",
       required: true,
-      placeholder: "Nhập mã đăng ký",
+      options: enrollments.map((enrollment) => ({
+        value: enrollment.id,
+        label: `${enrollment.student?.student_code} - ${enrollment.student?.full_name} (${enrollment.course_class?.subject?.subject_name})`,
+      })),
     },
     {
       name: "score_attendance",
@@ -81,14 +101,32 @@ const GradesPage: React.FC = () => {
     },
   ];
 
+  const filteredGrades = grades.filter((grade) => {
+    const student = grade.student;
+    if (!student) return false;
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      student.student_code.toLowerCase().includes(searchLower) ||
+      student.full_name.toLowerCase().includes(searchLower)
+    );
+  });
+
   const columns = [
     { key: "id" as const, label: "ID" },
     {
       key: "student" as const,
-      label: "Sinh viên",
+      label: "Mã sinh viên",
       render: (value: unknown) => {
         const student = value as Grade["student"];
-        return student ? `${student.student_code} - ${student.full_name}` : "-";
+        return student ? student.student_code : "-";
+      },
+    },
+    {
+      key: "student" as const,
+      label: "Tên sinh viên",
+      render: (value: unknown) => {
+        const student = value as Grade["student"];
+        return student ? student.full_name : "-";
       },
     },
     {
@@ -142,16 +180,25 @@ const GradesPage: React.FC = () => {
   ];
 
   return (
-    <AdminLayout>
+    <AdminLayout topbarTitle="Điểm Số" showSearch={false}>
       <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-gray-900">Quản Lý Điểm Số</h1>
+        <div className="flex justify-between items-center gap-4">
+          <div className="w-80 flex items-center gap-2">
+            <Search size={20} className="text-gray-400" />
+            <Input
+              type="text"
+              placeholder="Tìm kiếm sinh viên..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="flex-1"
+            />
+          </div>
           <Button onClick={() => setIsModalOpen(true)}>Nhập điểm mới</Button>
         </div>
 
         <Card>
           <DataTable<Grade>
-            data={grades}
+            data={filteredGrades}
             columns={columns}
             isLoading={isLoading}
             error={error}

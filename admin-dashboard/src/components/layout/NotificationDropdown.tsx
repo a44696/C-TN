@@ -94,7 +94,7 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
       {/* Bell Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-1.5 text-gray-600 hover:text-gray-900 transition-colors group"
+        className="relative p-1.5 text-white hover:text-gray-200 transition-colors group"
         title="Thông báo"
       >
         <Bell size={18} />

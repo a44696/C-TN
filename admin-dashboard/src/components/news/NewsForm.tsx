@@ -24,18 +24,6 @@ const RECIPIENT_TYPES: { value: PostRecipientType; label: string }[] = [
   { value: "SPECIFIC_CLASSES", label: "Theo lớp học phần" },
 ];
 
-// Danh sách các khoa/phòng ban
-const DEPARTMENTS = [
-  "Khoa Công Nghệ Thông Tin",
-  "Khoa Quản Trị Kinh Doanh",
-  "Khoa Kỹ Thuật",
-  "Khoa Khoa Học Xã Hội",
-  "Khoa Ngôn Ngữ",
-  "Khoa Kinh Tế",
-  "Khoa Hành Chính",
-  "Khoa Ngoại Ngữ",
-];
-
 // File validation constants
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 const ALLOWED_MIME_TYPES = [
@@ -73,7 +61,8 @@ export default function NewsForm({ onSuccess, onPostsUpdated }: NewsFormProps) {
   const [recipientType, setRecipientType] =
     useState<PostRecipientType>("ALL_STUDENTS");
   const [courseClassId, setCourseClassId] = useState<number | undefined>();
-  const [departmentNames, setDepartmentNames] = useState<string[]>([]);
+  const [allDepartments, setAllDepartments] = useState<string[]>([]);
+  const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
@@ -102,6 +91,18 @@ export default function NewsForm({ onSuccess, onPostsUpdated }: NewsFormProps) {
           // Handle error silently
         });
     }
+  }, []);
+
+  // Fetch departments from API
+  useEffect(() => {
+    apiClient
+      .getStudentDepartments()
+      .then((departments) => {
+        setAllDepartments(departments);
+      })
+      .catch(() => {
+        // Handle error silently
+      });
   }, []);
 
   // Validation function
@@ -211,13 +212,36 @@ export default function NewsForm({ onSuccess, onPostsUpdated }: NewsFormProps) {
     }
   };
 
+  // Handle explicit file upload
+  const handleUploadFiles = async () => {
+    if (!postId || !selectedFiles.some((f) => !f.error && !f.success)) {
+      return;
+    }
+
+    setUploading(true);
+    try {
+      for (let i = 0; i < selectedFiles.length; i++) {
+        if (!selectedFiles[i].error && !selectedFiles[i].success) {
+          await uploadFile(i, postId);
+        }
+      }
+
+      // Refetch posts to show uploaded files
+      if (onPostsUpdated) {
+        await onPostsUpdated();
+      }
+    } finally {
+      setUploading(false);
+    }
+  };
+
   // Reset form
   const resetForm = () => {
     setTitle("");
     setContent("");
     setRecipientType("ALL_STUDENTS");
     setCourseClassId(undefined);
-    setDepartmentNames([]);
+    setSelectedDepartments([]);
     setSelectedFiles([]);
     setPostId(null);
     setError("");
@@ -249,7 +273,7 @@ export default function NewsForm({ onSuccess, onPostsUpdated }: NewsFormProps) {
       return;
     }
 
-    if (recipientType === "BY_DEPARTMENT" && departmentNames.length === 0) {
+    if (recipientType === "BY_DEPARTMENT" && selectedDepartments.length === 0) {
       setError("Vui lòng chọn ít nhất một khoa");
       return;
     }
@@ -266,8 +290,8 @@ export default function NewsForm({ onSuccess, onPostsUpdated }: NewsFormProps) {
         payload.course_class_id = courseClassId;
       }
 
-      if (recipientType === "BY_DEPARTMENT" && departmentNames.length > 0) {
-        payload.department_names = departmentNames;
+      if (recipientType === "BY_DEPARTMENT" && selectedDepartments.length > 0) {
+        payload.department_names = selectedDepartments;
       }
 
       const response = await apiClient.createPost(payload);
@@ -287,26 +311,8 @@ export default function NewsForm({ onSuccess, onPostsUpdated }: NewsFormProps) {
       setContent("");
       setRecipientType("ALL_STUDENTS");
       setCourseClassId(undefined);
-      setDepartmentNames([]);
-
-      // Auto upload files if they exist - use newPostId directly
-      if (
-        selectedFiles.length > 0 &&
-        selectedFiles.some((f) => !f.error && !f.success)
-      ) {
-        setUploading(true);
-        for (let i = 0; i < selectedFiles.length; i++) {
-          if (!selectedFiles[i].error && !selectedFiles[i].success) {
-            await uploadFile(i, newPostId);
-          }
-        }
-        setUploading(false);
-
-        // Refetch posts to show uploaded files
-        if (onPostsUpdated) {
-          await onPostsUpdated();
-        }
-      }
+      setSelectedDepartments([]);
+      // Don't auto-upload - let user click Upload button explicitly
     } catch (err: any) {
       const errorMessage =
         err.response?.data?.error ||
@@ -443,20 +449,23 @@ export default function NewsForm({ onSuccess, onPostsUpdated }: NewsFormProps) {
                   Chọn Khoa/Phòng Ban
                 </label>
                 <div className="space-y-2 max-h-48 overflow-y-auto border border-gray-300 rounded-lg p-3 bg-gray-50">
-                  {DEPARTMENTS.map((dept) => (
+                  {allDepartments.map((dept) => (
                     <label
                       key={dept}
                       className="flex items-center gap-2 cursor-pointer hover:bg-gray-100 p-2 rounded"
                     >
                       <input
                         type="checkbox"
-                        checked={departmentNames.includes(dept)}
+                        checked={selectedDepartments.includes(dept)}
                         onChange={(e) => {
                           if (e.target.checked) {
-                            setDepartmentNames([...departmentNames, dept]);
+                            setSelectedDepartments([
+                              ...selectedDepartments,
+                              dept,
+                            ]);
                           } else {
-                            setDepartmentNames(
-                              departmentNames.filter((d) => d !== dept),
+                            setSelectedDepartments(
+                              selectedDepartments.filter((d) => d !== dept),
                             );
                           }
                         }}
@@ -467,9 +476,9 @@ export default function NewsForm({ onSuccess, onPostsUpdated }: NewsFormProps) {
                     </label>
                   ))}
                 </div>
-                {departmentNames.length > 0 && (
+                {selectedDepartments.length > 0 && (
                   <p className="text-xs text-gray-500 mt-2">
-                    Đã chọn: {departmentNames.length} khoa
+                    Đã chọn: {selectedDepartments.length} khoa
                   </p>
                 )}
               </div>
@@ -626,11 +635,34 @@ export default function NewsForm({ onSuccess, onPostsUpdated }: NewsFormProps) {
             </>
           ) : (
             <>
+              {/* Show upload button if there are files waiting to upload */}
+              {selectedFiles.some((f) => !f.error && !f.success) && (
+                <Button
+                  type="button"
+                  variant="primary"
+                  size="md"
+                  disabled={uploading}
+                  onClick={handleUploadFiles}
+                  className="flex items-center gap-2"
+                >
+                  {uploading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Đang tải lên...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-4 h-4" />
+                      Tải Lên File
+                    </>
+                  )}
+                </Button>
+              )}
               <Button
                 type="button"
-                variant="primary"
+                variant="secondary"
                 size="md"
-                disabled={uploading}
+                disabled={uploading || selectedFiles.some((f) => !f.error && !f.success)}
                 onClick={resetForm}
               >
                 Xong & Tạo Thông Báo Mới

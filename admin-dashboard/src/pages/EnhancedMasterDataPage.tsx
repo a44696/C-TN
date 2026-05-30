@@ -21,6 +21,9 @@ const MasterDataPage: React.FC = () => {
   const [error, setError] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingLecturerCode, setEditingLecturerCode] = useState<string | null>(
+    null,
+  );
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
 
@@ -202,6 +205,57 @@ const MasterDataPage: React.FC = () => {
     }
   };
 
+  const handleCreateLecturer = async (data: Record<string, unknown>) => {
+    try {
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
+      await apiClient.createLecturer({
+        lecturer_code: data.lecturer_code as string,
+        full_name: data.full_name as string,
+        email: data.email as string,
+        department: data.department as string,
+        phone_number: data.phone_number as string,
+        major_name: data.major_name as string,
+        degree: data.degree as string,
+        user_id: user.id || 0,
+      });
+      await fetchLecturers();
+    } catch (err) {
+      throw new Error(err instanceof Error ? err.message : "Lỗi khi tạo");
+    }
+  };
+
+  const handleUpdateLecturer = async (data: Record<string, unknown>) => {
+    if (!editingLecturerCode) return;
+    try {
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
+      await apiClient.updateLecturer(editingLecturerCode, {
+        lecturer_code: data.lecturer_code as string,
+        full_name: data.full_name as string,
+        email: data.email as string,
+        department: data.department as string,
+        phone_number: data.phone_number as string,
+        major_name: data.major_name as string,
+        degree: data.degree as string,
+        user_id: user.id || 0,
+      });
+      setEditingLecturerCode(null);
+      await fetchLecturers();
+    } catch (err) {
+      throw new Error(err instanceof Error ? err.message : "Lỗi khi cập nhật");
+    }
+  };
+
+  const handleDeleteLecturer = async (lecturerCode: string) => {
+    if (window.confirm("Bạn chắc chắn muốn xóa?")) {
+      try {
+        await apiClient.deleteLecturer(lecturerCode);
+        await fetchLecturers();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Lỗi khi xóa");
+      }
+    }
+  };
+
   const lecturerFields: FormField[] = [
     {
       name: "lecturer_code",
@@ -225,11 +279,36 @@ const MasterDataPage: React.FC = () => {
       placeholder: "example@tlu.edu.vn",
     },
     {
+      name: "phone_number",
+      label: "Số điện thoại",
+      type: "text",
+      required: true,
+      placeholder: "VD: 0912345678",
+    },
+    {
       name: "department",
       label: "Phòng ban",
       type: "text",
       required: true,
       placeholder: "Nhập phòng ban",
+    },
+    {
+      name: "major_name",
+      label: "Chuyên ngành",
+      type: "text",
+      required: true,
+      placeholder: "VD: Công Nghệ Thông Tin",
+    },
+    {
+      name: "degree",
+      label: "Bằng cấp",
+      type: "select",
+      required: true,
+      options: [
+        { value: "BACHELOR", label: "Cử Nhân (Bachelor)" },
+        { value: "MASTER", label: "Thạc Sĩ (Master)" },
+        { value: "PHD", label: "Tiến Sĩ (PhD)" },
+      ],
     },
   ];
 
@@ -257,6 +336,23 @@ const MasterDataPage: React.FC = () => {
       })),
     },
     {
+      name: "semester_id",
+      label: "Học kỳ",
+      type: "select",
+      required: true,
+      options: (semesters || []).map((s) => ({
+        value: s.id,
+        label: `${s.semester_name} - ${s.academic_year}`,
+      })),
+    },
+    {
+      name: "academic_year",
+      label: "Năm học",
+      type: "text",
+      required: true,
+      placeholder: "VD: 2025-2026",
+    },
+    {
       name: "room",
       label: "Phòng học",
       type: "text",
@@ -269,13 +365,107 @@ const MasterDataPage: React.FC = () => {
       type: "number",
       required: true,
     },
+    {
+      name: "day_of_week",
+      label: "Thứ trong tuần",
+      type: "select",
+      required: true,
+      options: [
+        { value: 1, label: "Thứ Hai" },
+        { value: 2, label: "Thứ Ba" },
+        { value: 3, label: "Thứ Tư" },
+        { value: 4, label: "Thứ Năm" },
+        { value: 5, label: "Thứ Sáu" },
+        { value: 6, label: "Thứ Bảy" },
+        { value: 0, label: "Chủ Nhật" },
+      ],
+    },
+    {
+      name: "lesson_slot",
+      label: "Tiết học",
+      type: "text",
+      required: true,
+      placeholder: "VD: 1-2, 3-4",
+    },
+    {
+      name: "start_date",
+      label: "Ngày bắt đầu",
+      type: "date",
+      required: true,
+    },
+    {
+      name: "end_date",
+      label: "Ngày kết thúc",
+      type: "date",
+      required: true,
+    },
   ];
+
+  // ==================== COURSE CLASSES ====================
+
+  const fetchCourseClasses = async () => {
+    setIsLoading(true);
+    setError("");
+    try {
+      const response = await apiClient.getCourseClasses();
+      setCourseClasses(response.data || []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Lỗi khi tải dữ liệu");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCreateCourseClass = async (data: Record<string, unknown>) => {
+    try {
+      await apiClient.createCourseClass({
+        subject_id: parseInt(data.subject_id as string),
+        lecturer_id: parseInt(data.lecturer_id as string),
+        semester_id: parseInt(data.semester_id as string),
+        academic_year: data.academic_year as string,
+        room: data.room as string,
+        max_students: parseInt(data.max_students as string),
+        day_of_week: parseInt(data.day_of_week as string),
+        lesson_slot: data.lesson_slot as string,
+        start_date: data.start_date as string,
+        end_date: data.end_date as string,
+      });
+      await fetchCourseClasses();
+    } catch (err) {
+      throw new Error(err instanceof Error ? err.message : "Lỗi khi tạo");
+    }
+  };
 
   useEffect(() => {
     fetchSubjects();
     fetchSemesters();
     fetchLecturers();
+    fetchCourseClasses();
   }, []);
+
+  const getDayName = (dayOfWeek: number) => {
+    const days = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
+    return days[dayOfWeek] || dayOfWeek.toString();
+  };
+
+  const formatDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString("vi-VN");
+    } catch {
+      return dateString;
+    }
+  };
+
+  const transformedCourseClasses = courseClasses.map((cc) => ({
+    ...cc,
+    subject_name: cc.subject?.subject_name || "N/A",
+    lecturer_name: cc.lecturer?.full_name || "N/A",
+    semester_name: cc.semester?.semester_name || "N/A",
+    day_of_week_name: getDayName(cc.day_of_week),
+    start_date_formatted: formatDate(cc.start_date),
+    end_date_formatted: formatDate(cc.end_date),
+  }));
 
   const tabs: Array<{ value: TabType; label: string }> = [
     { value: "subjects", label: "Môn Học" },
@@ -285,12 +475,8 @@ const MasterDataPage: React.FC = () => {
   ];
 
   return (
-    <AdminLayout>
+    <AdminLayout topbarTitle="Quản Lý Dữ Liệu Chính" showSearch={false}>
       <div className="space-y-6">
-        <h1 className="text-3xl font-bold text-gray-900">
-          Quản Lý Dữ Liệu Chính
-        </h1>
-
         <div className="flex gap-2 border-b border-gray-200">
           {tabs.map((tab) => (
             <button
@@ -439,9 +625,31 @@ const MasterDataPage: React.FC = () => {
                   { key: "lecturer_code" as const, label: "Mã GV" },
                   { key: "full_name" as const, label: "Họ tên" },
                   { key: "email" as const, label: "Email" },
+                  { key: "phone_number" as const, label: "Điện thoại" },
                   { key: "department" as const, label: "Phòng ban" },
+                  { key: "major_name" as const, label: "Chuyên ngành" },
+                  { key: "degree" as const, label: "Bằng cấp" },
                 ]}
                 isLoading={isLoading}
+                actions={(row) => (
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        setEditingLecturerCode(row.lecturer_code);
+                        setIsModalOpen(true);
+                      }}
+                      className="p-2 text-blue-600 hover:bg-blue-50 rounded"
+                    >
+                      <Edit2 size={16} />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteLecturer(row.lecturer_code)}
+                      className="p-2 text-red-600 hover:bg-red-50 rounded"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                )}
               />
             </Card>
           </div>
@@ -462,12 +670,17 @@ const MasterDataPage: React.FC = () => {
             </div>
 
             <Card>
-              <DataTable<CourseClass>
-                data={courseClasses}
+              <DataTable<any>
+                data={transformedCourseClasses}
                 columns={[
-                  { key: "academic_year" as const, label: "Năm học" },
+                  { key: "subject_name" as const, label: "Môn học" },
+                  { key: "lecturer_name" as const, label: "Giảng viên" },
                   { key: "room" as const, label: "Phòng" },
                   { key: "max_students" as const, label: "Tối đa SV" },
+                  { key: "day_of_week_name" as const, label: "Thứ" },
+                  { key: "lesson_slot" as const, label: "Tiết học" },
+                  { key: "start_date_formatted" as const, label: "Bắt đầu" },
+                  { key: "end_date_formatted" as const, label: "Kết thúc" },
                 ]}
                 isLoading={isLoading}
                 error={error}
@@ -479,7 +692,15 @@ const MasterDataPage: React.FC = () => {
 
       <FormModal
         isOpen={isModalOpen}
-        title={`${editingId ? "Cập nhật" : "Thêm"} ${
+        title={`${
+          activeTab === "lecturers"
+            ? editingLecturerCode
+              ? "Cập nhật"
+              : "Thêm"
+            : editingId
+              ? "Cập nhật"
+              : "Thêm"
+        } ${
           activeTab === "subjects"
             ? "môn học"
             : activeTab === "semesters"
@@ -497,10 +718,27 @@ const MasterDataPage: React.FC = () => {
                 ? lecturerFields
                 : courseClassFields
         }
-        initialData={{}}
+        initialData={
+          activeTab === "lecturers" && editingLecturerCode
+            ? ((lecturers.find(
+                (l) => l.lecturer_code === editingLecturerCode,
+              ) || {}) as Record<string, unknown>)
+            : activeTab === "subjects" && editingId
+              ? ((subjects.find((s) => s.id === editingId) || {}) as Record<
+                  string,
+                  unknown
+                >)
+              : activeTab === "semesters" && editingId
+                ? ((semesters.find((s) => s.id === editingId) || {}) as Record<
+                    string,
+                    unknown
+                  >)
+                : {}
+        }
         onClose={() => {
           setIsModalOpen(false);
           setEditingId(null);
+          setEditingLecturerCode(null);
         }}
         onSubmit={
           activeTab === "subjects"
@@ -511,7 +749,11 @@ const MasterDataPage: React.FC = () => {
               ? editingId
                 ? handleUpdateSemester
                 : handleCreateSemester
-              : async () => {}
+              : activeTab === "lecturers"
+                ? editingLecturerCode
+                  ? handleUpdateLecturer
+                  : handleCreateLecturer
+                : handleCreateCourseClass
         }
       />
     </AdminLayout>

@@ -24,7 +24,7 @@ export default function AdminLayout({
         showSearch={showSearch}
         rightAction={topbarRightAction}
       />
-      <main className="ml-64 mt-16 p-8">
+      <main className="ml-64 mt-20 p-8">
         <div className="max-w-7xl mx-auto">{children}</div>
       </main>
     </div>
