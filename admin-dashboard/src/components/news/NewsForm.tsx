@@ -662,7 +662,9 @@ export default function NewsForm({ onSuccess, onPostsUpdated }: NewsFormProps) {
                 type="button"
                 variant="secondary"
                 size="md"
-                disabled={uploading || selectedFiles.some((f) => !f.error && !f.success)}
+                disabled={
+                  uploading || selectedFiles.some((f) => !f.error && !f.success)
+                }
                 onClick={resetForm}
               >
                 Xong & Tạo Thông Báo Mới
