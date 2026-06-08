@@ -463,10 +463,10 @@ export class ApiClient {
     return response.data.data;
   }
 
-  async uploadLecturersExcel(file: File): Promise<Lecturer[]> {
+  async uploadLecturersExcel(file: File): Promise<any> {
     const formData = new FormData();
     formData.append("file", file);
-    const response = await this.axiosInstance.post<ApiResponse<Lecturer[]>>(
+    const response = await this.axiosInstance.post<ApiResponse<any>>(
       "/lecturers/import/excel",
       formData,
       {
@@ -475,8 +475,7 @@ export class ApiClient {
         },
       },
     );
-    const responseData = response.data.data;
-    return Array.isArray(responseData) ? responseData : responseData.data;
+    return response.data.data;
   }
 
   async updateLecturer(
@@ -893,10 +892,10 @@ export class ApiClient {
     return response.data.data;
   }
 
-  async uploadStudentsExcel(file: File): Promise<any[]> {
+  async uploadStudentsExcel(file: File): Promise<any> {
     const formData = new FormData();
     formData.append("file", file);
-    const response = await this.axiosInstance.post<ApiResponse<any[]>>(
+    const response = await this.axiosInstance.post<ApiResponse<any>>(
       "/students/import/excel",
       formData,
       {
@@ -905,8 +904,7 @@ export class ApiClient {
         },
       },
     );
-    const responseData = response.data.data;
-    return Array.isArray(responseData) ? responseData : responseData.data;
+    return response.data.data;
   }
 
   async updateStudent(studentCode: string, data: Partial<any>): Promise<any> {
@@ -1087,18 +1085,65 @@ export class ApiClient {
     }
   }
 
-  async generateAttendanceReport(params?: any): Promise<any> {
+  // Step 1: Call generate-comprehensive → returns JSON metadata with downloadUrl
+  async generateAttendanceReport(
+    params?: any,
+  ): Promise<{ fileName: string; downloadUrl: string; recordCount: number }> {
     try {
       const response = await this.axiosInstance.post<ApiResponse<any>>(
         "/api/reports/generate-comprehensive",
         params,
-        {
-          responseType: "blob",
-        },
       );
-      return response.data;
-    } catch (error) {
+      const data = response.data?.data ?? response.data;
+      if (!data?.downloadUrl && !data?.fileName) {
+        throw new Error("Không nhận được đường dẫn tải xuống từ server");
+      }
+      return data;
+    } catch (error: any) {
       console.error("Error generating report:", error);
+      throw new Error(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Lỗi khi tạo báo cáo",
+      );
+    }
+  }
+
+  // Step 2: Download the generated file by fileName
+  async downloadReport(fileName: string): Promise<Blob> {
+    try {
+      const response = await this.axiosInstance.get(
+        `/api/reports/download/${encodeURIComponent(fileName)}`,
+        { responseType: "blob" },
+      );
+      const blob: Blob = response.data;
+
+      // Detect JSON error response wrapped as blob
+      if (
+        blob.type.includes("application/json") ||
+        blob.type.includes("text/")
+      ) {
+        const text = await blob.text();
+        try {
+          const parsed = JSON.parse(text);
+          throw new Error(parsed?.message || "Lỗi khi tải báo cáo");
+        } catch {
+          throw new Error(text || "Lỗi khi tải báo cáo");
+        }
+      }
+
+      return blob;
+    } catch (error: any) {
+      if (error?.response?.data instanceof Blob) {
+        const text = await error.response.data.text();
+        try {
+          const parsed = JSON.parse(text);
+          throw new Error(parsed?.message || "Lỗi khi tải báo cáo");
+        } catch {
+          throw new Error("Lỗi khi tải báo cáo");
+        }
+      }
+      console.error("Error downloading report:", error);
       throw error;
     }
   }

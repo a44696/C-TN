@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Download, Filter, TrendingUp, AlertTriangle } from "lucide-react";
+import { Download, TrendingUp, AlertTriangle } from "lucide-react";
 import AdminLayout from "../layouts/AdminLayout";
 import Card from "../components/common/Card";
 import Button from "../components/common/Button";
@@ -12,16 +12,8 @@ const AttendanceStatisticsPage: React.FC = () => {
   const [studentsAtRisk, setStudentsAtRisk] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const [filters, setFilters] = useState({
-    semesterId: "",
-    facultyId: "",
-    classId: "",
-    startDate: "",
-    endDate: "",
-  });
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
-  const [hasSearched, setHasSearched] = useState(false);
 
   const limit = 10;
 
@@ -29,27 +21,8 @@ const AttendanceStatisticsPage: React.FC = () => {
     setIsLoading(true);
     setError("");
     try {
-      // Convert dates to ISO 8601 format if provided
-      const startDateISO = filters.startDate
-        ? new Date(filters.startDate).toISOString()
-        : "";
-      const endDateISO = filters.endDate
-        ? new Date(filters.endDate).toISOString()
-        : "";
+      const params = { page, limit };
 
-      // Build params - only include non-empty values
-      const params: any = {
-        page,
-        limit,
-      };
-
-      if (filters.semesterId) params.semesterId = filters.semesterId;
-      if (filters.facultyId) params.facultyId = filters.facultyId;
-      if (filters.classId) params.classId = filters.classId;
-      if (startDateISO) params.startDate = startDateISO;
-      if (endDateISO) params.endDate = endDateISO;
-
-      // Fetch both datasets in parallel
       const [overviewRes, riskRes] = await Promise.all([
         apiClient.getAttendanceOverview(params),
         apiClient.getStudentsAtRisk(params),
@@ -61,7 +34,7 @@ const AttendanceStatisticsPage: React.FC = () => {
         setStudentsAtRisk(
           Array.isArray(riskRes.studentsAtRisk) ? riskRes.studentsAtRisk : [],
         );
-        setTotal(riskRes.totalAtRisk || 0);
+        setTotal(riskRes.pagination?.total ?? riskRes.totalAtRisk ?? 0);
       } else {
         setStudentsAtRisk([]);
         setTotal(0);
@@ -73,41 +46,26 @@ const AttendanceStatisticsPage: React.FC = () => {
     }
   };
 
-  // Only fetch when user clicks search button or page changes after search
   useEffect(() => {
-    if (hasSearched) {
-      fetchData();
-    }
-  }, [page, hasSearched]);
+    fetchData();
+  }, [page]);
 
   const handleExportReport = async () => {
     try {
       setIsLoading(true);
 
-      // Convert dates to ISO 8601 format if provided
-      const startDateISO = filters.startDate
-        ? new Date(filters.startDate).toISOString()
-        : "";
-      const endDateISO = filters.endDate
-        ? new Date(filters.endDate).toISOString()
-        : "";
+      // Step 1: Generate report → get JSON metadata with fileName
+      const meta = await apiClient.generateAttendanceReport({});
 
-      const reportData = await apiClient.generateAttendanceReport({
-        semesterId: filters.semesterId,
-        facultyId: filters.facultyId,
-        classId: filters.classId,
-        startDate: startDateISO,
-        endDate: endDateISO,
-      });
+      // Step 2: Download the actual binary file using fileName
+      const blob = await apiClient.downloadReport(meta.fileName);
 
-      // Create blob and download
-      const blob = new Blob([reportData], {
-        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `attendance-report-${new Date().toISOString().split("T")[0]}.xlsx`;
+      link.download =
+        meta.fileName ||
+        `attendance-report-${new Date().toISOString().split("T")[0]}.xlsx`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -123,117 +81,30 @@ const AttendanceStatisticsPage: React.FC = () => {
     <AdminLayout topbarTitle="Thống Kê Chuyên Cần">
       <div className="space-y-6">
         {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">
-            Thống Kê Chuyên Cần
-          </h1>
-          <p className="text-gray-600 mt-1">
-            Xem chi tiết tỉ lệ đi học và danh sách sinh viên có nguy cơ cấm thi
-          </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">
+              Thống Kê Chuyên Cần
+            </h1>
+            <p className="text-gray-600 mt-1">
+              Xem chi tiết tỉ lệ đi học và danh sách sinh viên có nguy cơ cấm
+              thi
+            </p>
+          </div>
+          <Button
+            variant="secondary"
+            onClick={handleExportReport}
+            disabled={isLoading}
+            className="flex items-center gap-2"
+          >
+            <Download size={18} />
+            Xuất Báo Cáo Excel
+          </Button>
         </div>
-
-        {/* Filters */}
-        <Card className="p-6">
-          <div className="flex items-center gap-4 mb-4">
-            <Filter size={20} className="text-gray-600" />
-            <h2 className="text-lg font-semibold">Bộ Lọc</h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Kỳ Học
-              </label>
-              <input
-                type="text"
-                placeholder="Semester ID"
-                value={filters.semesterId}
-                onChange={(e) =>
-                  setFilters({ ...filters, semesterId: e.target.value })
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Bộ Phận
-              </label>
-              <input
-                type="text"
-                placeholder="Faculty ID"
-                value={filters.facultyId}
-                onChange={(e) =>
-                  setFilters({ ...filters, facultyId: e.target.value })
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Lớp Học Phần
-              </label>
-              <input
-                type="text"
-                placeholder="Class ID"
-                value={filters.classId}
-                onChange={(e) =>
-                  setFilters({ ...filters, classId: e.target.value })
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Từ Ngày
-              </label>
-              <input
-                type="date"
-                value={filters.startDate}
-                onChange={(e) =>
-                  setFilters({ ...filters, startDate: e.target.value })
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Đến Ngày
-              </label>
-              <input
-                type="date"
-                value={filters.endDate}
-                onChange={(e) =>
-                  setFilters({ ...filters, endDate: e.target.value })
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-          </div>
-          <div className="mt-4 flex gap-3">
-            <Button
-              onClick={() => {
-                setPage(1);
-                setHasSearched(true);
-              }}
-              className="flex items-center gap-2"
-            >
-              <Filter size={18} />
-              Lọc Dữ Liệu
-            </Button>
-            <Button
-              variant="secondary"
-              onClick={handleExportReport}
-              disabled={isLoading}
-              className="flex items-center gap-2"
-            >
-              <Download size={18} />
-              Xuất Báo Cáo Excel
-            </Button>
-          </div>
-        </Card>
 
         {/* Overview Stats */}
         {attendanceOverview && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <Card className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -272,12 +143,59 @@ const AttendanceStatisticsPage: React.FC = () => {
                     Sinh Viên Có Nguy Cơ
                   </p>
                   <p className="text-3xl font-bold text-red-600 mt-2">
-                    {attendanceOverview.totalAtRisk || 0}
+                    {total}
                   </p>
                 </div>
                 <AlertTriangle className="text-red-600" size={40} />
               </div>
             </Card>
+
+            <Card className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600 font-medium">
+                    Chuyên Cần Tốt
+                  </p>
+                  <p className="text-3xl font-bold text-green-600 mt-2">
+                    {attendanceOverview.summary?.goodAttendance || 0}
+                  </p>
+                </div>
+                <TrendingUp className="text-green-600" size={40} />
+              </div>
+            </Card>
+          </div>
+        )}
+
+        {/* Attendance Rates Breakdown */}
+        {attendanceOverview?.attendanceRates?.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {attendanceOverview.attendanceRates.map((rate: any) => (
+              <Card key={rate.name} className="p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-gray-700">
+                    {rate.name}
+                  </span>
+                  <span
+                    className="text-sm font-bold"
+                    style={{ color: rate.color }}
+                  >
+                    {rate.count} SV
+                  </span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div
+                    className="h-3 rounded-full transition-all"
+                    style={{
+                      width: `${Math.min(rate.percentage, 100)}%`,
+                      backgroundColor: rate.color,
+                    }}
+                  />
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  {rate.percentage.toFixed(1)}%
+                </p>
+              </Card>
+            ))}
           </div>
         )}
 
@@ -299,18 +217,23 @@ const AttendanceStatisticsPage: React.FC = () => {
             columns={[
               {
                 key: "studentCode",
-                label: "Mã Sinh Viên",
-                width: "15%",
+                label: "Mã SV",
+                width: "10%",
               },
               {
                 key: "fullName",
                 label: "Họ Tên",
-                width: "25%",
+                width: "18%",
               },
               {
                 key: "className",
                 label: "Lớp",
-                width: "15%",
+                width: "8%",
+              },
+              {
+                key: "courseClassName",
+                label: "Lớp Học Phần",
+                width: "18%",
               },
               {
                 key: "attendanceRate",
@@ -340,9 +263,19 @@ const AttendanceStatisticsPage: React.FC = () => {
                 },
               },
               {
+                key: "absentSessions",
+                label: "Vắng / Tổng",
+                width: "10%",
+                render: (_: any, row: any) => (
+                  <span className="text-sm">
+                    {row.absentSessions}/{row.totalSessions}
+                  </span>
+                ),
+              },
+              {
                 key: "riskLevel",
                 label: "Mức Nguy Hiểm",
-                width: "15%",
+                width: "12%",
                 render: (value: string) => (
                   <StatusBadge
                     status={
@@ -362,9 +295,9 @@ const AttendanceStatisticsPage: React.FC = () => {
                 ),
               },
               {
-                key: "absentSessions",
-                label: "Số Buổi Vắng",
-                width: "15%",
+                key: "notes",
+                label: "Ghi Chú",
+                width: "9%",
               },
             ]}
             isLoading={isLoading}
