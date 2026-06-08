@@ -17,6 +17,7 @@ import AttendanceStatisticsPage from "../pages/AttendanceStatisticsPage";
 import KnowledgeBasePage from "../pages/KnowledgeBasePage";
 import AttendanceWarningSettingsPage from "../pages/AttendanceWarningSettingsPage";
 import FaceIDManagementPage from "../pages/FaceIDManagementPage";
+import LocationGPSPage from "../pages/LocationGPSPage";
 import ProtectedRoute from "./ProtectedRoute";
 
 // Lazy load ChatPage to avoid blocking app load
@@ -108,6 +109,10 @@ export default function AppRoutes() {
         <Route
           path="/faceid-management"
           element={<ProtectedRoute element={<FaceIDManagementPage />} />}
+        />
+        <Route
+          path="/location-gps"
+          element={<ProtectedRoute element={<LocationGPSPage />} />}
         />
       </Routes>
     </BrowserRouter>

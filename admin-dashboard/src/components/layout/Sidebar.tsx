@@ -12,9 +12,9 @@ import {
   Users,
   Upload,
   TrendingUp,
-  AlertCircle,
   Library,
   Fingerprint,
+  MapPin,
 } from "lucide-react";
 import { cn } from "../../utils/cn";
 import { useNotifications } from "../../hooks/useNotifications";
@@ -67,6 +67,12 @@ const navItems = [
     label: "Quản Lý FaceID",
     href: "/faceid-management",
     icon: Fingerprint,
+  },
+  {
+    id: "location-gps",
+    label: "Định Vị GPS",
+    href: "/location-gps",
+    icon: MapPin,
   },
 
   {
