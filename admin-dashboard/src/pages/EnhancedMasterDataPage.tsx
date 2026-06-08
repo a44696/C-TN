@@ -342,13 +342,6 @@ const MasterDataPage: React.FC = () => {
       })),
     },
     {
-      name: "academic_year",
-      label: "Năm học",
-      type: "text",
-      required: true,
-      placeholder: "VD: 2025-2026",
-    },
-    {
       name: "room",
       label: "Phòng học",
       type: "text",
@@ -378,10 +371,10 @@ const MasterDataPage: React.FC = () => {
     },
     {
       name: "lesson_slot",
-      label: "Tiết học",
+      label: "Thời gian học",
       type: "text",
       required: true,
-      placeholder: "VD: 1-2, 3-4",
+      placeholder: "VD: 7:00-9:00",
     },
     {
       name: "start_date",
@@ -414,19 +407,44 @@ const MasterDataPage: React.FC = () => {
     }
   };
 
+  const formatDateToISODate = (dateStr: string): string => {
+    // Handle various date formats and convert to YYYY-MM-DD
+    if (!dateStr) return "";
+
+    // If already in YYYY-MM-DD format, return as is
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+      return dateStr;
+    }
+
+    // Parse date from input (could be D/M/YYYY or M/D/YYYY)
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) {
+      return dateStr; // Return original if parsing fails
+    }
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
   const handleCreateCourseClass = async (data: Record<string, unknown>) => {
     try {
+      // Normalize lesson_slot by removing spaces around dash
+      const normalizedLessonSlot = (data.lesson_slot as string)
+        .replace(/\s*-\s*/g, "-")
+        .trim();
+
       await apiClient.createCourseClass({
         subject_id: parseInt(data.subject_id as string),
         lecturer_id: parseInt(data.lecturer_id as string),
         semester_id: parseInt(data.semester_id as string),
-        academic_year: data.academic_year as string,
         room: data.room as string,
         max_students: parseInt(data.max_students as string),
         day_of_week: parseInt(data.day_of_week as string),
-        lesson_slot: data.lesson_slot as string,
-        start_date: data.start_date as string,
-        end_date: data.end_date as string,
+        lesson_slot: normalizedLessonSlot,
+        start_date: formatDateToISODate(data.start_date as string),
+        end_date: formatDateToISODate(data.end_date as string),
       });
       await fetchCourseClasses();
     } catch (err) {
