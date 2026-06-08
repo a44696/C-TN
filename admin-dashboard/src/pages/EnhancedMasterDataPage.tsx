@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Plus, Edit2, Trash2, Upload } from "lucide-react";
+import { Plus, Edit2, Trash2 } from "lucide-react";
 import AdminLayout from "../layouts/AdminLayout";
 import Card from "../components/common/Card";
 import Button from "../components/common/Button";
@@ -24,10 +24,6 @@ const MasterDataPage: React.FC = () => {
   const [editingLecturerCode, setEditingLecturerCode] = useState<string | null>(
     null,
   );
-  const [page, setPage] = useState(1);
-  const [total, setTotal] = useState(0);
-
-  const limit = 10;
 
   // ==================== SUBJECTS ====================
 
@@ -371,13 +367,13 @@ const MasterDataPage: React.FC = () => {
       type: "select",
       required: true,
       options: [
-        { value: 1, label: "Thứ Hai" },
-        { value: 2, label: "Thứ Ba" },
-        { value: 3, label: "Thứ Tư" },
-        { value: 4, label: "Thứ Năm" },
-        { value: 5, label: "Thứ Sáu" },
-        { value: 6, label: "Thứ Bảy" },
-        { value: 0, label: "Chủ Nhật" },
+        { value: 2, label: "Thứ Hai" },
+        { value: 3, label: "Thứ Ba" },
+        { value: 4, label: "Thứ Tư" },
+        { value: 5, label: "Thứ Năm" },
+        { value: 6, label: "Thứ Sáu" },
+        { value: 7, label: "Thứ Bảy" },
+        { value: 1, label: "Chủ Nhật" },
       ],
     },
     {
@@ -390,14 +386,16 @@ const MasterDataPage: React.FC = () => {
     {
       name: "start_date",
       label: "Ngày bắt đầu",
-      type: "date",
+      type: "text",
       required: true,
+      placeholder: "YYYY-MM-DD",
     },
     {
       name: "end_date",
       label: "Ngày kết thúc",
-      type: "date",
+      type: "text",
       required: true,
+      placeholder: "YYYY-MM-DD",
     },
   ];
 
@@ -443,9 +441,18 @@ const MasterDataPage: React.FC = () => {
     fetchCourseClasses();
   }, []);
 
-  const getDayName = (dayOfWeek: number) => {
-    const days = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
-    return days[dayOfWeek] || dayOfWeek.toString();
+  const getDayName = (dayOfWeek: number | undefined) => {
+    if (dayOfWeek === undefined) return "N/A";
+    const dayMap: Record<number, string> = {
+      1: "CN",
+      2: "T2",
+      3: "T3",
+      4: "T4",
+      5: "T5",
+      6: "T6",
+      7: "T7",
+    };
+    return dayMap[dayOfWeek] || dayOfWeek.toString();
   };
 
   const formatDate = (dateString: string) => {
@@ -589,10 +596,6 @@ const MasterDataPage: React.FC = () => {
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <label className="flex items-center gap-2">
-                <Button disabled={isLoading}>
-                  <Upload size={20} />
-                  Import Excel
-                </Button>
                 <input
                   type="file"
                   accept=".xlsx"
@@ -601,15 +604,6 @@ const MasterDataPage: React.FC = () => {
                   className="hidden"
                 />
               </label>
-              <Button
-                onClick={() => {
-                  setEditingId(null);
-                  setIsModalOpen(true);
-                }}
-              >
-                <Plus size={20} />
-                Thêm giảng viên
-              </Button>
             </div>
 
             {error && (

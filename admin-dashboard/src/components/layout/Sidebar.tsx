@@ -61,12 +61,7 @@ const navItems = [
     href: "/knowledge-base",
     icon: Library,
   },
-  {
-    id: "attendance-warnings",
-    label: "Cảnh Báo Cần",
-    href: "/attendance-warnings",
-    icon: AlertCircle,
-  },
+
   {
     id: "faceid-management",
     label: "Quản Lý FaceID",

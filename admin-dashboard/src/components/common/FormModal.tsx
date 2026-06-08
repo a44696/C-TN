@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import Button from "./Button";
-import Input from "./Input";
 
 export interface FormField {
   name: string;
@@ -11,6 +10,8 @@ export interface FormField {
   placeholder?: string;
   options?: Array<{ value: string | number; label: string }>;
   value?: string | number;
+  defaultValue?: string | number;
+  disabled?: boolean;
 }
 
 interface FormModalProps {
@@ -40,10 +41,18 @@ const FormModal: React.FC<FormModalProps> = ({
 
   useEffect(() => {
     if (isOpen) {
-      setFormData(initialData);
+      // Initialize formData with defaultValue from fields if available
+      const defaultData: Record<string, unknown> = {};
+      fields.forEach((field) => {
+        if (field.defaultValue !== undefined) {
+          defaultData[field.name] = field.defaultValue;
+        }
+      });
+
+      setFormData({ ...defaultData, ...initialData });
       setError("");
     }
-  }, [isOpen, initialData]);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -107,7 +116,12 @@ const FormModal: React.FC<FormModalProps> = ({
                   onChange={handleChange}
                   placeholder={field.placeholder}
                   required={field.required}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                  disabled={field.disabled}
+                  className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 ${
+                    field.disabled
+                      ? "bg-gray-100 cursor-not-allowed opacity-60"
+                      : ""
+                  }`}
                   rows={3}
                 />
               ) : field.type === "select" && field.options ? (
@@ -116,7 +130,12 @@ const FormModal: React.FC<FormModalProps> = ({
                   value={(formData[field.name] as string) || ""}
                   onChange={handleChange}
                   required={field.required}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                  disabled={field.disabled}
+                  className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 ${
+                    field.disabled
+                      ? "bg-gray-100 cursor-not-allowed opacity-60"
+                      : ""
+                  }`}
                 >
                   <option value="">Chọn {field.label.toLowerCase()}</option>
                   {field.options.map((opt) => (
@@ -126,13 +145,19 @@ const FormModal: React.FC<FormModalProps> = ({
                   ))}
                 </select>
               ) : (
-                <Input
+                <input
                   type={field.type}
                   name={field.name}
                   value={(formData[field.name] as string) || ""}
                   onChange={handleChange}
                   placeholder={field.placeholder}
                   required={field.required}
+                  disabled={field.disabled}
+                  className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 ${
+                    field.disabled
+                      ? "bg-gray-100 cursor-not-allowed opacity-60"
+                      : ""
+                  }`}
                 />
               )}
             </div>

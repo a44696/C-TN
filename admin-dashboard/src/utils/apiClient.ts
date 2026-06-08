@@ -460,7 +460,7 @@ export class ApiClient {
       "/lecturers",
       data,
     );
-    return response.data.data.data;
+    return response.data.data;
   }
 
   async uploadLecturersExcel(file: File): Promise<Lecturer[]> {
@@ -487,7 +487,7 @@ export class ApiClient {
       `/lecturers/${lecturerCode}`,
       data,
     );
-    return response.data.data.data;
+    return response.data.data;
   }
 
   async deleteLecturer(lecturerCode: string): Promise<void> {
@@ -890,7 +890,7 @@ export class ApiClient {
       "/students",
       data,
     );
-    return response.data.data.data;
+    return response.data.data;
   }
 
   async uploadStudentsExcel(file: File): Promise<any[]> {
@@ -914,7 +914,7 @@ export class ApiClient {
       `/students/${studentCode}`,
       data,
     );
-    return response.data.data.data;
+    return response.data.data;
   }
 
   async deleteStudent(studentCode: string): Promise<void> {
@@ -1151,6 +1151,69 @@ export class ApiClient {
 
   async deleteKnowledgeBase(id: number): Promise<void> {
     await this.axiosInstance.delete(`/knowledge-base/${id}`);
+  }
+
+  // ==================== FACE RECOGNITION ====================
+
+  async registerFace(studentId: number, file: File): Promise<any> {
+    const formData = new FormData();
+    formData.append("file", file);
+    const response = await this.axiosInstance.post<ApiResponse<any>>(
+      `/face-recognition/register/${studentId}`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      },
+    );
+    return response.data.data;
+  }
+
+  async getStudentFaces(studentId: number): Promise<any> {
+    const response = await this.axiosInstance.get<ApiResponse<any>>(
+      `/face-recognition/student/${studentId}`,
+    );
+    return response.data.data;
+  }
+
+  async getMyFaces(): Promise<any> {
+    const response = await this.axiosInstance.get<ApiResponse<any>>(
+      "/face-recognition/me",
+    );
+    return response.data.data;
+  }
+
+  async deleteFace(faceId: number): Promise<any> {
+    const response = await this.axiosInstance.delete<ApiResponse<any>>(
+      `/face-recognition/faces/${faceId}`,
+    );
+    return response.data.data;
+  }
+
+  async attendanceByFace(
+    sessionId: number,
+    file: File,
+    latitude?: number,
+    longitude?: number,
+  ): Promise<any> {
+    const formData = new FormData();
+    formData.append("file", file);
+    if (latitude !== undefined)
+      formData.append("latitude", latitude.toString());
+    if (longitude !== undefined)
+      formData.append("longitude", longitude.toString());
+
+    const response = await this.axiosInstance.post<ApiResponse<any>>(
+      `/face-recognition/attendance/${sessionId}`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      },
+    );
+    return response.data.data;
   }
 
   private getDefaultTrendData(

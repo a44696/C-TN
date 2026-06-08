@@ -8,7 +8,6 @@ import DataTable from "../components/common/DataTable";
 import FormModal, { type FormField } from "../components/common/FormModal";
 import { apiClient } from "../utils/apiClient";
 import { StatusBadge } from "../components/common/Badge";
-import type { User } from "../types/api";
 
 type UserType = "user" | "student" | "lecturer";
 
@@ -63,6 +62,33 @@ const UsersManagementPage: React.FC = () => {
     fetchUsers();
   }, [page, userType]);
 
+  // Filter users based on search query
+  const filteredUsers = users.filter((user) => {
+    const query = searchQuery.toLowerCase();
+
+    if (userType === "user") {
+      return (
+        user.username?.toLowerCase().includes(query) ||
+        user.role?.toLowerCase().includes(query)
+      );
+    } else if (userType === "student") {
+      return (
+        user.student_code?.toLowerCase().includes(query) ||
+        user.full_name?.toLowerCase().includes(query) ||
+        user.email?.toLowerCase().includes(query) ||
+        user.class_name?.toLowerCase().includes(query)
+      );
+    } else if (userType === "lecturer") {
+      return (
+        user.lecturer_code?.toLowerCase().includes(query) ||
+        user.full_name?.toLowerCase().includes(query) ||
+        user.email?.toLowerCase().includes(query) ||
+        user.department?.toLowerCase().includes(query)
+      );
+    }
+    return true;
+  });
+
   const handleAddUser = () => {
     setSelectedUser(null);
     setIsModalOpen(true);
@@ -78,7 +104,10 @@ const UsersManagementPage: React.FC = () => {
 
     try {
       if (userType === "user") {
-        await apiClient.deleteUser(userId.id);
+        alert(
+          "Không thể xóa người dùng hệ thống. Vui lòng xóa thông qua danh sách sinh viên hoặc giảng viên.",
+        );
+        return;
       } else if (userType === "student") {
         await apiClient.deleteStudent(userId.student_code);
       } else if (userType === "lecturer") {
@@ -86,7 +115,8 @@ const UsersManagementPage: React.FC = () => {
       }
       await fetchUsers();
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Lỗi khi xóa");
+      const errorMsg = err instanceof Error ? err.message : "Lỗi khi xóa";
+      alert(errorMsg);
     }
   };
 
@@ -96,26 +126,34 @@ const UsersManagementPage: React.FC = () => {
         if (selectedUser) {
           await apiClient.updateUser(selectedUser.id, {
             username: formData.username as string,
-            role: formData.role as string,
+            role: formData.role as "ADMIN" | "LECTURER" | "STUDENT",
           });
         } else {
           await apiClient.createUser({
             username: formData.username as string,
             password: formData.password as string,
-            role: formData.role as string,
+            role: formData.role as "ADMIN" | "LECTURER" | "STUDENT",
           });
         }
       } else if (userType === "student") {
+        // Convert dob from YYYY-MM-DD to ISO 8601 format
+        const studentData = { ...formData };
+        if (studentData.dob && typeof studentData.dob === "string") {
+          // Format: YYYY-MM-DD to YYYY-MM-DDTHH:mm:ss.sssZ
+          const dobDate = new Date(studentData.dob);
+          studentData.dob = dobDate.toISOString();
+        }
+
         if (selectedUser) {
-          await apiClient.updateStudent(selectedUser.student_code, formData);
+          await apiClient.updateStudent(selectedUser.student_code, studentData);
         } else {
-          await apiClient.createStudent(formData);
+          await apiClient.createStudent(studentData);
         }
       } else if (userType === "lecturer") {
         if (selectedUser) {
           await apiClient.updateLecturer(selectedUser.lecturer_code, formData);
         } else {
-          await apiClient.createLecturer(formData);
+          await apiClient.createLecturer(formData as any);
         }
       }
 
@@ -182,16 +220,48 @@ const UsersManagementPage: React.FC = () => {
           defaultValue: selectedUser?.email || "",
         },
         {
+          name: "dob",
+          label: "Ngày sinh",
+          type: "text",
+          required: true,
+          placeholder: "YYYY-MM-DD",
+          defaultValue: selectedUser?.dob ? selectedUser.dob.split("T")[0] : "",
+        },
+        {
+          name: "gender",
+          label: "Giới tính",
+          type: "select",
+          required: true,
+          options: [
+            { value: "MALE", label: "Nam" },
+            { value: "FEMALE", label: "Nữ" },
+            { value: "OTHER", label: "Khác" },
+          ],
+          defaultValue: selectedUser?.gender || "",
+        },
+        {
           name: "phone_number",
           label: "Số điện thoại",
           type: "text",
           defaultValue: selectedUser?.phone_number || "",
         },
         {
+          name: "address",
+          label: "Địa chỉ",
+          type: "text",
+          defaultValue: selectedUser?.address || "",
+        },
+        {
           name: "class_name",
           label: "Lớp",
           type: "text",
           defaultValue: selectedUser?.class_name || "",
+        },
+        {
+          name: "major_name",
+          label: "Ngành học",
+          type: "text",
+          defaultValue: selectedUser?.major_name || "",
         },
         {
           name: "department_name",
@@ -240,7 +310,13 @@ const UsersManagementPage: React.FC = () => {
         {
           name: "degree",
           label: "Bằng cấp",
-          type: "text",
+          type: "select",
+          required: true,
+          options: [
+            { value: "BACHELOR", label: "Cử nhân" },
+            { value: "MASTER", label: "Thạc sĩ" },
+            { value: "PHD", label: "Tiến sĩ" },
+          ],
           defaultValue: selectedUser?.degree || "",
         },
       ];
@@ -254,48 +330,37 @@ const UsersManagementPage: React.FC = () => {
         {
           key: "username",
           label: "Tên người dùng",
-          width: "25%",
+          width: "40%",
         },
         {
           key: "role",
           label: "Vai trò",
-          width: "20%",
-          render: (value: string) => (
+          width: "30%",
+          render: (value: unknown) => (
             <StatusBadge
               status={
                 value === "ADMIN"
-                  ? "success"
+                  ? ("active" as any)
                   : value === "LECTURER"
-                    ? "info"
-                    : "default"
+                    ? ("pending" as any)
+                    : ("inactive" as any)
               }
             >
-              {value}
+              {String(value)}
             </StatusBadge>
           ),
         },
         {
-          key: "email",
-          label: "Email",
-          width: "30%",
-        },
-        {
           key: "actions",
           label: "Thao tác",
-          width: "25%",
-          render: (_, record: any) => (
+          width: "30%",
+          render: (_: unknown, record: any) => (
             <div className="flex gap-2">
               <button
                 onClick={() => handleEditUser(record)}
                 className="text-blue-600 hover:text-blue-800 transition"
               >
                 <Edit2 size={18} />
-              </button>
-              <button
-                onClick={() => handleDeleteUser(record)}
-                className="text-red-600 hover:text-red-800 transition"
-              >
-                <Trash2 size={18} />
               </button>
             </div>
           ),
@@ -327,7 +392,7 @@ const UsersManagementPage: React.FC = () => {
           key: "actions",
           label: "Thao tác",
           width: "20%",
-          render: (_, record: any) => (
+          render: (_: unknown, record: any) => (
             <div className="flex gap-2">
               <button
                 onClick={() => handleEditUser(record)}
@@ -371,7 +436,7 @@ const UsersManagementPage: React.FC = () => {
           key: "actions",
           label: "Thao tác",
           width: "20%",
-          render: (_, record: any) => (
+          render: (_: unknown, record: any) => (
             <div className="flex gap-2">
               <button
                 onClick={() => handleEditUser(record)}
@@ -502,13 +567,15 @@ const UsersManagementPage: React.FC = () => {
             </div>
           )}
           <DataTable
-            data={users}
+            data={filteredUsers}
             columns={getTableColumns()}
             isLoading={isLoading}
-            page={page}
-            onPageChange={setPage}
-            total={total}
-            limit={limit}
+            pagination={{
+              page,
+              limit,
+              total,
+              onPageChange: setPage,
+            }}
           />
         </Card>
 
