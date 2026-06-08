@@ -859,7 +859,67 @@ export class ApiClient {
     return response.data.data;
   }
 
+  async updateUser(
+    userId: number,
+    data: Partial<CreateUserDto>,
+  ): Promise<User> {
+    const response = await this.axiosInstance.patch<ApiResponse<User>>(
+      `/users/${userId}`,
+      data,
+    );
+    return response.data.data;
+  }
+
+  async deleteUser(userId: number): Promise<void> {
+    await this.axiosInstance.delete(`/users/${userId}`);
+  }
+
   // ==================== STUDENTS ====================
+
+  async getStudents(params?: PaginationParams): Promise<any[]> {
+    const response = await this.axiosInstance.get<ApiResponse<any[]>>(
+      "/students",
+      { params },
+    );
+    const data = response.data.data;
+    return Array.isArray(data) ? data : data.data || [];
+  }
+
+  async createStudent(data: Partial<any>): Promise<any> {
+    const response = await this.axiosInstance.post<ApiResponse<any>>(
+      "/students",
+      data,
+    );
+    return response.data.data.data;
+  }
+
+  async uploadStudentsExcel(file: File): Promise<any[]> {
+    const formData = new FormData();
+    formData.append("file", file);
+    const response = await this.axiosInstance.post<ApiResponse<any[]>>(
+      "/students/import/excel",
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      },
+    );
+    const responseData = response.data.data;
+    return Array.isArray(responseData) ? responseData : responseData.data;
+  }
+
+  async updateStudent(studentCode: string, data: Partial<any>): Promise<any> {
+    const response = await this.axiosInstance.patch<ApiResponse<any>>(
+      `/students/${studentCode}`,
+      data,
+    );
+    return response.data.data.data;
+  }
+
+  async deleteStudent(studentCode: string): Promise<void> {
+    await this.axiosInstance.delete(`/students/${studentCode}`);
+  }
 
   async getStudentDepartments(): Promise<string[]> {
     const response = await this.axiosInstance.get<ApiResponse<string[]>>(
@@ -984,6 +1044,113 @@ export class ApiClient {
       console.error("Error fetching attendance trends:", error);
       return this.getDefaultTrendData(period);
     }
+  }
+
+  // ==================== ATTENDANCE STATISTICS ====================
+
+  async getAttendanceOverview(params?: any): Promise<any> {
+    try {
+      const response = await this.axiosInstance.get<ApiResponse<any>>(
+        "/api/statistics/attendance-overview",
+        { params },
+      );
+      return response.data.data;
+    } catch (error) {
+      console.error("Error fetching attendance overview:", error);
+      return { totalStudents: 0, attendanceRate: 0, overview: [] };
+    }
+  }
+
+  async getAttendanceChart(params?: any): Promise<any> {
+    try {
+      const response = await this.axiosInstance.get<ApiResponse<any>>(
+        "/api/statistics/attendance-chart",
+        { params },
+      );
+      return response.data.data;
+    } catch (error) {
+      console.error("Error fetching attendance chart:", error);
+      return { labels: [], data: [] };
+    }
+  }
+
+  async getStudentsAtRisk(params?: any): Promise<any> {
+    try {
+      const response = await this.axiosInstance.get<ApiResponse<any>>(
+        "/api/statistics/students-at-risk",
+        { params },
+      );
+      return response.data.data;
+    } catch (error) {
+      console.error("Error fetching students at risk:", error);
+      return { data: [], total: 0 };
+    }
+  }
+
+  async generateAttendanceReport(params?: any): Promise<any> {
+    try {
+      const response = await this.axiosInstance.post<ApiResponse<any>>(
+        "/api/reports/generate-comprehensive",
+        params,
+        {
+          responseType: "blob",
+        },
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error generating report:", error);
+      throw error;
+    }
+  }
+
+  // ==================== KNOWLEDGE BASE ====================
+
+  async uploadKnowledgeBase(file: File): Promise<any> {
+    const formData = new FormData();
+    formData.append("file", file);
+    const response = await this.axiosInstance.post<ApiResponse<any>>(
+      "/knowledge-base/upload",
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      },
+    );
+    return response.data.data;
+  }
+
+  async getKnowledgeBase(): Promise<any[]> {
+    const response =
+      await this.axiosInstance.get<ApiResponse<any[]>>("/knowledge-base");
+    const data = response.data.data;
+    const items = Array.isArray(data) ? data : data.data || [];
+
+    // Map API response to frontend format
+    return items.map((item: any) => {
+      // Extract file type from document_name or file_path
+      let fileType = "txt";
+      const fileName = item.document_name || item.file_name || "";
+      const ext = fileName.split(".").pop()?.toLowerCase();
+      if (ext) {
+        fileType = ext;
+      }
+
+      return {
+        id: parseInt(item.id) || item.id,
+        file_name: fileName,
+        file_type: fileType,
+        file_url: item.file_path || item.file_url || "",
+        created_at: item.created_at,
+        updated_at: item.updated_at || item.created_at,
+        status: item.status,
+        total_chunks: item.total_chunks,
+      };
+    });
+  }
+
+  async deleteKnowledgeBase(id: number): Promise<void> {
+    await this.axiosInstance.delete(`/knowledge-base/${id}`);
   }
 
   private getDefaultTrendData(

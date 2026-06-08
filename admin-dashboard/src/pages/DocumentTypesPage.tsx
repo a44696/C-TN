@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Plus, Edit2, Trash2, Search } from "lucide-react";
+import { Plus, Edit2, Trash2, Search, AlertCircle, X } from "lucide-react";
 import AdminLayout from "../layouts/AdminLayout";
 import Card from "../components/common/Card";
 import Button from "../components/common/Button";
@@ -19,6 +19,10 @@ const DocumentTypesPage: React.FC = () => {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editingData, setEditingData] = useState<DocumentType | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [deleteError, setDeleteError] = useState("");
+  const [deleteErrorDetails, setDeleteErrorDetails] = useState("");
+  const [incompleteRequests, setIncompleteRequests] = useState(0);
+  const [showDeleteError, setShowDeleteError] = useState(false);
 
   const limit = 10;
 
@@ -39,6 +43,16 @@ const DocumentTypesPage: React.FC = () => {
   useEffect(() => {
     fetchDocumentTypes();
   }, [page]);
+
+  // Auto-hide delete error after 5 seconds
+  useEffect(() => {
+    if (showDeleteError) {
+      const timer = setTimeout(() => {
+        setShowDeleteError(false);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [showDeleteError]);
 
   const handleCreate = async (data: Record<string, unknown>) => {
     try {
@@ -73,8 +87,22 @@ const DocumentTypesPage: React.FC = () => {
       try {
         await apiClient.deleteDocumentType(id);
         await fetchDocumentTypes();
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Lỗi khi xóa");
+      } catch (err: any) {
+        // Extract error details from backend response
+        const errorData = err.response?.data;
+
+        if (errorData?.incompleteRequests !== undefined) {
+          // This is a special error about incomplete service requests
+          setDeleteError(errorData.message || "Lỗi khi xóa");
+          setDeleteErrorDetails(errorData.details || "");
+          setIncompleteRequests(errorData.incompleteRequests || 0);
+        } else {
+          // Generic error
+          setDeleteError(err instanceof Error ? err.message : "Lỗi khi xóa");
+          setDeleteErrorDetails("");
+          setIncompleteRequests(0);
+        }
+        setShowDeleteError(true);
       }
     }
   };
@@ -119,6 +147,39 @@ const DocumentTypesPage: React.FC = () => {
   return (
     <AdminLayout topbarTitle="Tài Liệu Thủ Tục" showSearch={false}>
       <div className="space-y-6">
+        {/* Delete Error Toast */}
+        {showDeleteError && (
+          <div className="fixed top-24 right-8 w-full max-w-md p-4 rounded-lg border-l-4 border-red-500 bg-red-50 shadow-lg animate-slideIn z-50">
+            <div className="flex items-start gap-3">
+              <AlertCircle
+                size={20}
+                className="text-red-600 flex-shrink-0 mt-0.5"
+              />
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-red-900 text-sm">
+                  {deleteError}
+                </p>
+                {deleteErrorDetails && (
+                  <>
+                    <p className="text-xs text-red-700 mt-2 font-semibold">
+                      Yêu cầu dịch vụ chưa hoàn thành ({incompleteRequests}):
+                    </p>
+                    <p className="text-xs text-red-700 mt-1 whitespace-pre-wrap font-mono bg-red-100 p-2 rounded">
+                      {deleteErrorDetails}
+                    </p>
+                  </>
+                )}
+              </div>
+              <button
+                onClick={() => setShowDeleteError(false)}
+                className="text-red-400 hover:text-red-600 flex-shrink-0"
+              >
+                <X size={16} />
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className="flex justify-between items-center gap-4">
           <div className="w-80 flex items-center gap-2">
             <Search size={20} className="text-gray-400" />

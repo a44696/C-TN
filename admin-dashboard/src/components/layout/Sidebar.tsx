@@ -9,6 +9,12 @@ import {
   ClipboardList,
   BookOpen,
   MessageCircle,
+  Users,
+  Upload,
+  TrendingUp,
+  AlertCircle,
+  Library,
+  Fingerprint,
 } from "lucide-react";
 import { cn } from "../../utils/cn";
 import { useNotifications } from "../../hooks/useNotifications";
@@ -31,6 +37,43 @@ const navItems = [
     href: "/master-data-enhanced",
     icon: Database,
   },
+  {
+    id: "users",
+    label: "Quản Lý Người Dùng",
+    href: "/users",
+    icon: Users,
+  },
+  {
+    id: "import",
+    label: "Import Dữ Liệu",
+    href: "/import",
+    icon: Upload,
+  },
+  {
+    id: "attendance-statistics",
+    label: "Thống Kê Chuyên Cần",
+    href: "/attendance-statistics",
+    icon: TrendingUp,
+  },
+  {
+    id: "knowledge-base",
+    label: "Kho AI Content",
+    href: "/knowledge-base",
+    icon: Library,
+  },
+  {
+    id: "attendance-warnings",
+    label: "Cảnh Báo Cần",
+    href: "/attendance-warnings",
+    icon: AlertCircle,
+  },
+  {
+    id: "faceid-management",
+    label: "Quản Lý FaceID",
+    href: "/faceid-management",
+    icon: Fingerprint,
+  },
+
   {
     id: "document-types",
     label: "Loại Tài Liệu",

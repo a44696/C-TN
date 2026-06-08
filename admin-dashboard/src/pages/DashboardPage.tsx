@@ -196,81 +196,29 @@ export default function DashboardPage() {
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-2 gap-6 mb-6">
-        {/* Attendance Trends Chart */}
-        <div>
-          <Card className="p-6">
-            <div className="flex items-center justify-between mb-6">
+        <div
+          onClick={() => navigate("/news/create")}
+          className="cursor-pointer"
+        >
+          <Card className="p-6 bg-gradient-to-br from-blue-900 to-blue-800 border-0 text-white hover:shadow-lg transition-shadow h-full">
+            <div className="flex items-start justify-between">
               <div>
-                <h2 className="text-base font-bold text-gray-900">
-                  Xu Hướng Điểm Danh
-                </h2>
-                <p className="text-xs text-gray-500 mt-0.5">
-                  Tổng quan hàng tuần
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-white/10 rounded-md flex items-center justify-center">
+                    <Newspaper size={20} />
+                  </div>
+                </div>
+                <h3 className="text-base font-bold mb-2">Tạo Tin Tức</h3>
+                <p className="text-sm text-blue-200 mb-5 line-clamp-2">
+                  Tạo và gửi tin tức cho sinh viên
                 </p>
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setChartType("weekly")}
-                  className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                    chartType === "weekly"
-                      ? "bg-red-600 text-white"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
-                >
-                  Tuần
-                </button>
-                <button
-                  onClick={() => setChartType("monthly")}
-                  className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                    chartType === "monthly"
-                      ? "bg-red-600 text-white"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
-                >
-                  Tháng
-                </button>
+                <Button variant="primary" size="md">
+                  Tạo Ngay
+                </Button>
               </div>
             </div>
-            <ResponsiveContainer width="100%" height={260}>
-              <AreaChart data={attendanceTrendsData}>
-                <defs>
-                  <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#dc2626" stopOpacity={0.2} />
-                    <stop offset="95%" stopColor="#dc2626" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  stroke="#f3f4f6"
-                  vertical={false}
-                />
-                <XAxis
-                  dataKey="name"
-                  stroke="#9ca3af"
-                  style={{ fontSize: "12px" }}
-                />
-                <YAxis stroke="#9ca3af" style={{ fontSize: "12px" }} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "#fff",
-                    border: "1px solid #e5e7eb",
-                    borderRadius: "6px",
-                    boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-                  }}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="value"
-                  stroke="#dc2626"
-                  fillOpacity={1}
-                  fill="url(#colorValue)"
-                  strokeWidth={2}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
           </Card>
         </div>
-
         {/* Recent Activities */}
         <div>
           <Card className="p-5 h-full flex flex-col">
@@ -295,61 +243,6 @@ export default function DashboardPage() {
             </button>
           </Card>
         </div>
-      </div>
-
-      {/* Bottom Row */}
-      <div className="grid grid-cols-2 gap-6">
-        {/* Create News Card */}
-        <div
-          onClick={() => navigate("/news/create")}
-          className="cursor-pointer"
-        >
-          <Card className="p-6 bg-gradient-to-br from-blue-900 to-blue-800 border-0 text-white hover:shadow-lg transition-shadow h-full">
-            <div className="flex items-start justify-between">
-              <div>
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-white/10 rounded-md flex items-center justify-center">
-                    <Newspaper size={20} />
-                  </div>
-                </div>
-                <h3 className="text-base font-bold mb-2">Tạo Tin Tức</h3>
-                <p className="text-sm text-blue-200 mb-5 line-clamp-2">
-                  Tạo và gửi tin tức cho sinh viên
-                </p>
-                <Button variant="primary" size="md">
-                  Tạo Ngay
-                </Button>
-              </div>
-            </div>
-          </Card>
-        </div>
-
-        {/* Faculty Health Score */}
-        <Card className="p-6">
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 bg-green-100 rounded-lg flex-shrink-0 flex items-center justify-center text-green-600">
-              <Award size={24} />
-            </div>
-            <div className="flex-1">
-              <h3 className="text-base font-bold text-gray-900 mb-3">
-                Điểm Sức Khỏe Giảng Viên
-              </h3>
-              <div className="mb-3">
-                <div className="flex items-baseline gap-2 mb-2">
-                  <p className="text-3xl font-bold text-gray-900">8.4</p>
-                  <p className="text-sm text-gray-600">/10</p>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
-                  <div
-                    className="bg-green-500 h-full"
-                    style={{ width: "84%" }}
-                  ></div>
-                </div>
-              </div>
-              <p className="text-xs text-gray-600">Điểm danh chung xuất sắc</p>
-            </div>
-          </div>
-        </Card>
       </div>
     </AdminLayout>
   );

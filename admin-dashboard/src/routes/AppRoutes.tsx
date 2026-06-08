@@ -11,6 +11,12 @@ import ServiceRequestsPage from "../pages/ServiceRequestsPage";
 import GradesPage from "../pages/GradesPage";
 import EnhancedMasterDataPage from "../pages/EnhancedMasterDataPage";
 import SettingsPage from "../pages/SettingsPage";
+import UsersManagementPage from "../pages/UsersManagementPage";
+import ImportDataPage from "../pages/ImportDataPage";
+import AttendanceStatisticsPage from "../pages/AttendanceStatisticsPage";
+import KnowledgeBasePage from "../pages/KnowledgeBasePage";
+import AttendanceWarningSettingsPage from "../pages/AttendanceWarningSettingsPage";
+import FaceIDManagementPage from "../pages/FaceIDManagementPage";
 import ProtectedRoute from "./ProtectedRoute";
 
 // Lazy load ChatPage to avoid blocking app load
@@ -76,6 +82,32 @@ export default function AppRoutes() {
         <Route
           path="/settings"
           element={<ProtectedRoute element={<SettingsPage />} />}
+        />
+        <Route
+          path="/users"
+          element={<ProtectedRoute element={<UsersManagementPage />} />}
+        />
+        <Route
+          path="/import"
+          element={<ProtectedRoute element={<ImportDataPage />} />}
+        />
+        <Route
+          path="/attendance-statistics"
+          element={<ProtectedRoute element={<AttendanceStatisticsPage />} />}
+        />
+        <Route
+          path="/knowledge-base"
+          element={<ProtectedRoute element={<KnowledgeBasePage />} />}
+        />
+        <Route
+          path="/attendance-warnings"
+          element={
+            <ProtectedRoute element={<AttendanceWarningSettingsPage />} />
+          }
+        />
+        <Route
+          path="/faceid-management"
+          element={<ProtectedRoute element={<FaceIDManagementPage />} />}
         />
       </Routes>
     </BrowserRouter>
