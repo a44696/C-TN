@@ -634,6 +634,10 @@ export class ApiClient {
     return response.data.data.data;
   }
 
+  async deleteAttendanceSession(id: string | number): Promise<void> {
+    await this.axiosInstance.delete(`/attendance/sessions/${id}`);
+  }
+
   async deleteAttendanceRecord(id: number): Promise<void> {
     await this.axiosInstance.delete(`/attendance/records/${id}`);
   }

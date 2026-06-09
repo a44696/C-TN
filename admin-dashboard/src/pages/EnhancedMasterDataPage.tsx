@@ -24,6 +24,7 @@ const MasterDataPage: React.FC = () => {
   const [editingLecturerCode, setEditingLecturerCode] = useState<string | null>(
     null,
   );
+  const [page, setPage] = useState(1);
 
   // ==================== SUBJECTS ====================
 
@@ -452,6 +453,50 @@ const MasterDataPage: React.FC = () => {
     }
   };
 
+  const handleUpdateCourseClass = async (data: Record<string, unknown>) => {
+    if (!editingId) return;
+    try {
+      const normalizedLessonSlot = (data.lesson_slot as string)
+        .replace(/\s*-\s*/g, "-")
+        .trim();
+
+      await apiClient.updateCourseClass(editingId, {
+        subject_id: parseInt(data.subject_id as string),
+        lecturer_id: parseInt(data.lecturer_id as string),
+        semester_id: parseInt(data.semester_id as string),
+        room: data.room as string,
+        max_students: parseInt(data.max_students as string),
+        day_of_week: parseInt(data.day_of_week as string),
+        lesson_slot: normalizedLessonSlot,
+        start_date: formatDateToISODate(data.start_date as string),
+        end_date: formatDateToISODate(data.end_date as string),
+      });
+      setEditingId(null);
+      await fetchCourseClasses();
+    } catch (err) {
+      throw new Error(err instanceof Error ? err.message : "Lỗi khi cập nhật");
+    }
+  };
+
+  const handleDeleteCourseClass = async (id: number) => {
+    if (
+      !window.confirm(
+        "Bạn chắc chắn muốn xóa lớp học phần này?\nTất cả buổi điểm danh và dữ liệu liên quan sẽ bị xóa vĩnh viễn.",
+      )
+    )
+      return;
+    setIsLoading(true);
+    setError("");
+    try {
+      await apiClient.deleteCourseClass(id);
+      await fetchCourseClasses();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Lỗi khi xóa");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchSubjects();
     fetchSemesters();
@@ -696,6 +741,25 @@ const MasterDataPage: React.FC = () => {
                 ]}
                 isLoading={isLoading}
                 error={error}
+                actions={(row) => (
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        setEditingId(row.id);
+                        setIsModalOpen(true);
+                      }}
+                      className="p-2 text-blue-600 hover:bg-blue-50 rounded"
+                    >
+                      <Edit2 size={16} />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteCourseClass(row.id)}
+                      className="p-2 text-red-600 hover:bg-red-50 rounded"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                )}
               />
             </Card>
           </div>
@@ -745,7 +809,23 @@ const MasterDataPage: React.FC = () => {
                     string,
                     unknown
                   >)
-                : {}
+                : activeTab === "courseClasses" && editingId
+                  ? (() => {
+                      const cc = courseClasses.find((c) => c.id === editingId);
+                      if (!cc) return {} as Record<string, unknown>;
+                      return {
+                        subject_id: cc.subject_id,
+                        lecturer_id: cc.lecturer_id,
+                        semester_id: cc.semester_id,
+                        room: cc.room,
+                        max_students: cc.max_students,
+                        day_of_week: cc.day_of_week,
+                        lesson_slot: cc.lesson_slot,
+                        start_date: formatDateToISODate(cc.start_date),
+                        end_date: formatDateToISODate(cc.end_date),
+                      } as Record<string, unknown>;
+                    })()
+                  : {}
         }
         onClose={() => {
           setIsModalOpen(false);
@@ -765,7 +845,9 @@ const MasterDataPage: React.FC = () => {
                 ? editingLecturerCode
                   ? handleUpdateLecturer
                   : handleCreateLecturer
-                : handleCreateCourseClass
+                : editingId
+                  ? handleUpdateCourseClass
+                  : handleCreateCourseClass
         }
       />
     </AdminLayout>
