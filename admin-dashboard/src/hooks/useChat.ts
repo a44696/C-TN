@@ -51,8 +51,8 @@ export interface SendMessageDto {
   mediaUrl?: string | null;
 }
 
-const API_BASE_URL = "http://localhost:3000";
-const SOCKET_URL = "http://localhost:3000/admin-chat";
+const API_BASE_URL = "https://tlu-students.onrender.com";
+const SOCKET_URL = "https://tlu-students.onrender.com/admin-chat";
 
 // Helper function to set isMe flag on messages
 const setIsMe = (
